@@ -1,13 +1,22 @@
-import { ILuckyFile, ILuckyFileInfo,IluckySheet,IluckySheetCelldata,IluckySheetConfig,IluckySheetCelldataValue,IluckySheetCelldataValueMerge,ILuckySheetCellFormat,IluckySheetConfigMerges,IluckySheetConfigMerge,IMapluckySheetborderInfoCellForImp,IluckySheetborderInfoCellValue,IluckySheetborderInfoCellValueStyle,IluckySheetborderInfoCellForImp,IluckySheetRowAndColumnLen,IluckySheetRowAndColumnHidden,IluckySheetSelection,IluckysheetFrozen,IluckySheetChart,IluckySheetPivotTable,IluckysheetConditionFormat,IluckysheetCalcChain,ILuckyInlineString,IluckyImage,IluckyImageBorder,IluckyImageCrop,IluckyImageDefault,IluckyImages, IluckysheetHyperlink, IluckysheetDataVerification} from "./ILuck";
+import { ILuckyFile, ILuckyFileInfo,IluckySheet,IluckySheetCelldata,IluckySheetConfig,IluckySheetCelldataValue,IluckySheetCelldataValueMerge,ILuckySheetCellFormat,IluckySheetConfigMerges,IluckySheetConfigMerge,IMapluckySheetborderInfoCellForImp,IluckySheetborderInfoCellValue,IluckySheetborderInfoCellValueStyle,IluckySheetborderInfoCellForImp,IluckySheetRowAndColumnLen,IluckySheetRowAndColumnHidden,IluckySheetSelection,IluckysheetFrozen,IluckySheetChart,IluckySheetPivotTable,IluckysheetConditionFormat,IluckysheetCalcChain,ILuckyInlineString,IluckyImage,IluckyImageBorder,IluckyImageCrop,IluckyImageDefault,IluckyImages, IluckysheetHyperlink, IluckysheetDataVerification, IWorkBookInfo} from "./ILuck";
+import type { LuckyConditionFormat } from './LuckyCondition'
+import { IDefinedNames } from "./LuckyDefineName";
+import { LuckyFilterFormat } from "./luckyFilter";
+import { LuckyVerificationFormat } from "./LuckyVerification";
 
 
 
 export class LuckyFileBase implements ILuckyFile {
+    workbook: IWorkBookInfo;
     info:ILuckyFileInfo
     sheets:IluckySheet[]
 }
+export class WorkBookInfo implements IWorkBookInfo {
+    defineNames?: IDefinedNames;
+}
 
 export class LuckySheetBase implements IluckySheet{
+    id: string
     name:string
     color:string
     config:IluckySheetConfig
@@ -40,7 +49,11 @@ export class LuckySheetBase implements IluckySheet{
     dataVerification: IluckysheetDataVerification;
     hyperlink: IluckysheetHyperlink
     hide: number;
-    
+
+    conditionalFormatting: LuckyConditionFormat[];
+    dataVerificationList: LuckyVerificationFormat[];
+    filter: LuckyFilterFormat;
+
 }
 
 export class LuckyFileInfo implements ILuckyFileInfo{
@@ -83,9 +96,9 @@ export class LuckySheetCelldataValue implements IluckySheetCelldataValue{
 
 
 export class LuckySheetCellFormat implements ILuckySheetCellFormat {
+    s: Array<IluckySheetCelldataValue | ILuckyInlineString>;
     fa:string
     t:string
-    s:LuckyInlineString[] | undefined
 }
 
 export class LuckyInlineString implements ILuckyInlineString {

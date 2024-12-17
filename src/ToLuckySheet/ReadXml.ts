@@ -46,9 +46,10 @@ export class ReadXml extends xmloperation{
     * @param fileName One of uploadfileList, uploadfileList is file group, {key:value}
     * @return Xml element calss
     */
-    getElementsByTagName(path:string, fileName:string): Element[]{
+    getElementsByTagName(path:string, fileName:string, isFile: boolean = true): Element[]{
         
         let file = this.getFileByName(fileName);
+        if (!isFile) file = fileName;
         let pathArr = path.split("/"), ret:string[] | string;
         for(let key in pathArr){
             let path = pathArr[key];

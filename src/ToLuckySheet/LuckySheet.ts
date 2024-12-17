@@ -7,6 +7,10 @@ import { ReadXml, IStyleCollections, Element,getColor } from "./ReadXml";
 import { LuckyFileBase,LuckySheetBase,LuckyConfig,LuckySheetborderInfoCellForImp,LuckySheetborderInfoCellValue,LuckysheetCalcChain,LuckySheetConfigMerge } from "./LuckyBase";
 import {ImageList} from "./LuckyImage";
 import dayjs from "dayjs";
+import { LuckyCondition } from "./LuckyCondition";
+import { LuckyVerification } from "./LuckyVerification";
+import { LuckFilter } from "./luckyFilter";
+import { LuckyFreezen } from './luckyFreezen'
 
 export class LuckySheet extends LuckySheetBase {
 
@@ -46,6 +50,7 @@ export class LuckySheet extends LuckySheetBase {
         this.mergeCells = this.readXml.getElementsByTagName("mergeCells/mergeCell", this.sheetFile);
         let clrScheme = this.styles["clrScheme"] as Element[];
         let sheetView = this.readXml.getElementsByTagName("sheetViews/sheetView", this.sheetFile);
+
         let showGridLines = "1", tabSelected="0", zoomScale = "100", activeCell = "A1";
         if(sheetView.length>0){
             let attrList = sheetView[0].attributeList;
@@ -59,6 +64,11 @@ export class LuckySheet extends LuckySheetBase {
                 let range:IluckySheetSelection = getcellrange(activeCell, this.sheetList, sheetId);
                 this.luckysheet_select_save = [];
                 this.luckysheet_select_save.push(range);
+            }
+
+            let pane = sheetView[0].getInnerElements("pane");
+            if (pane?.length > 0) {
+                this.freezen = new LuckyFreezen(pane[0])
             }
         }
         this.showGridLines = showGridLines;
@@ -174,9 +184,44 @@ export class LuckySheet extends LuckySheetBase {
                 this.calcChain.push(chain);
             }
         }
+
+        const conditionList = this.readXml.getElementsByTagName("conditionalFormatting", this.sheetFile)
+        const  extLstCondition =
+        this.readXml.getElementsByTagName(
+          "extLst/ext/x14:conditionalFormattings/x14:conditionalFormatting",
+          this.sheetFile
+        ) || [];
+        
+        const extLstRule = extLstCondition?.map(condition => {
+            const sqref = this.readXml.getElementsByTagName("xm:sqref", condition.value, false)?.[0]
+            return this.readXml.getElementsByTagName("x14:cfRule", condition.value, false).map(d => ({
+                ...d,
+                parentAttribute: { sqref: sqref?.value },
+                isExtLst: true,
+                extLst: undefined
+            }))
+        })?.flat() || [];
+
+        if (conditionList?.length) {
+            const ruleList = conditionList.map(condition => {
+                return this.readXml.getElementsByTagName("cfRule", condition.value, false)?.map(d => ({
+                    ...d,
+                    parentAttribute: condition.attributeList,
+                    extLst: extLstRule.find((d: any) => d.parentAttribute.sqref === condition.attributeList?.sqref)
+                }))
+            })?.flat().filter(Boolean).concat(extLstRule?.filter((d: any) => conditionList.findIndex(condition => condition.attributeList.sqref === d.parentAttribute.sqref) === -1)) || [];
+            
+            this.conditionalFormatting = ruleList.map((d: any ) => new LuckyCondition(d, this.readXml, this.styles));
+            // console.log(ruleList, allFileOption, this.conditionalFormatting)
+        }
+        console.log(allFileOption)
+        const filter = new LuckFilter(this.readXml, this.sheetFile)
+        if (filter.ref) this.filter = filter;
       
         // dataVerification config
         this.dataVerification = this.generateConfigDataValidations();
+        this.dataVerificationList = this.generateConfigDataValidationsList();
+        // console.log('dataVerificationList ---->', this.dataVerificationList)
 
         // hyperlink config
         this.hyperlink = this.generateConfigHyperlinks();
@@ -221,7 +266,7 @@ export class LuckySheet extends LuckySheetBase {
                         
                         let rembed = getXmlAttibute(xdr_blipfill.attributeList, "r:embed", null);
 
-                        let imageObject = this.getBase64ByRid(rembed, drawingRelsFile);
+                        let imageObject: any = this.getBase64ByRid(rembed, drawingRelsFile);
 
 
 
@@ -334,7 +379,7 @@ export class LuckySheet extends LuckySheetBase {
             }
         }
 
-        return null;
+        return {};
     }
 
     /**
@@ -553,7 +598,20 @@ export class LuckySheet extends LuckySheetBase {
 
         return cellOtherInfo;
     }
-  
+    private generateConfigDataValidationsList() {
+        let rows = this.readXml.getElementsByTagName(
+            "dataValidations/dataValidation",
+            this.sheetFile
+          );
+          let extLst =
+            this.readXml.getElementsByTagName(
+              "extLst/ext/x14:dataValidations/x14:dataValidation",
+              this.sheetFile
+            ) || [];
+          
+          rows = rows.concat(extLst);
+          return rows.map(d => new LuckyVerification(d, extLst)).filter(d => d.uid)
+    }
     /**
      * luckysheet config of dataValidations
      * 
@@ -613,7 +671,7 @@ export class LuckySheet extends LuckySheetBase {
         let _hint = getXmlAttibute(attrList, "prompt", null);
         let _hintShow = _hint ? true : false
   
-        const matchType = COMMON_TYPE2.includes(_type) ? "common" : _type;
+        const matchType = COMMON_TYPE2.includes(_type) || !DATA_VERIFICATION_TYPE2_MAP[_type] ? "common" : _type;
         _type2 = operator
           ? DATA_VERIFICATION_TYPE2_MAP[matchType][operator]
           : "bw";
