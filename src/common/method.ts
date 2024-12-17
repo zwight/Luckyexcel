@@ -1,6 +1,7 @@
 import { columeHeader_word, columeHeader_word_index } from "./constant";
 import { IluckySheetSelection } from "../ToLuckySheet/ILuck";
 import { IattributeList, stringToNum} from "../ICommon";
+import { customAlphabet, nanoid } from "nanoid";
 
 
 export function getRangetxt(range:IluckySheetSelection, sheettxt:string) {
@@ -9,17 +10,17 @@ export function getRangetxt(range:IluckySheetSelection, sheettxt:string) {
     let column0 = range["column"][0], column1 = range["column"][1];
 
     if (row0 == null && row1 == null) {
-        return sheettxt + chatatABC(column0) + ":" + chatatABC(column1);
+        return sheettxt + numberToABC(column0) + ":" + numberToABC(column1);
     }
     else if (column0 == null && column1 == null) {
         return sheettxt + (row0 + 1) + ":" + (row1 + 1);
     }
     else {
         if (column0 == column1 && row0 == row1) {
-            return sheettxt + chatatABC(column0) + (row0 + 1);
+            return sheettxt + numberToABC(column0) + (row0 + 1);
         }
         else {
-            return sheettxt + chatatABC(column0) + (row0 + 1) + ":" + chatatABC(column1) + (row1 + 1);
+            return sheettxt + numberToABC(column0) + (row0 + 1) + ":" + numberToABC(column1) + (row1 + 1);
         }
     }
 }
@@ -184,6 +185,17 @@ export function getPxByEMUs(emus:number){
     let pt = inch*72;
     let px = pt / getptToPxRatioByDPI();
     return px;
+}
+
+/** 
+ * @emus EMUs, Excel drawing unit
+ * @return pixel
+*/
+export function getEmusByPx(px:number){
+    const pt = px * getptToPxRatioByDPI();
+    const inch = pt / 72;
+    let emus = inch * 914400;
+    return emus;
 }
 
 /** 
@@ -389,7 +401,7 @@ export function generateRandomIndex(prefix:string):string {
         prefix = "Sheet";
     }
 
-    let userAgent = window.navigator.userAgent.replace(/[^a-zA-Z0-9]/g, "").split("");
+    let userAgent = navigator.userAgent.replace(/[^a-zA-Z0-9]/g, "").split("");
 
     let mid = "";
 
@@ -408,7 +420,7 @@ export function escapeCharacter(str:string){
         return str;
     }
 
-    return str.replace(/&amp;/g, "&").replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&nbsp;/g, ' ').replace(/&apos;/g, "'").replace(/&iexcl;/g, "¡").replace(/&cent;/g, "¢").replace(/&pound;/g, "£").replace(/&curren;/g, "¤").replace(/&yen;/g, "¥").replace(/&brvbar;/g, "¦").replace(/&sect;/g, "§").replace(/&uml;/g, "¨").replace(/&copy;/g, "©").replace(/&ordf;/g, "ª").replace(/&laquo;/g, "«").replace(/&not;/g, "¬").replace(/&shy;/g, "­").replace(/&reg;/g, "®").replace(/&macr;/g, "¯").replace(/&deg;/g, "°").replace(/&plusmn;/g, "±").replace(/&sup2;/g, "²").replace(/&sup3;/g, "³").replace(/&acute;/g, "´").replace(/&micro;/g, "µ").replace(/&para;/g, "¶").replace(/&middot;/g, "·").replace(/&cedil;/g, "¸").replace(/&sup1;/g, "¹").replace(/&ordm;/g, "º").replace(/&raquo;/g, "»").replace(/&frac14;/g, "¼").replace(/&frac12;/g, "½").replace(/&frac34;/g, "¾").replace(/&iquest;/g, "¿").replace(/&times;/g, "×").replace(/&divide;/g, "÷").replace(/&Agrave;/g, "À").replace(/&Aacute;/g, "Á").replace(/&Acirc;/g, "Â").replace(/&Atilde;/g, "Ã").replace(/&Auml;/g, "Ä").replace(/&Aring;/g, "Å").replace(/&AElig;/g, "Æ").replace(/&Ccedil;/g, "Ç").replace(/&Egrave;/g, "È").replace(/&Eacute;/g, "É").replace(/&Ecirc;/g, "Ê").replace(/&Euml;/g, "Ë").replace(/&Igrave;/g, "Ì").replace(/&Iacute;/g, "Í").replace(/&Icirc;/g, "Î").replace(/&Iuml;/g, "Ï").replace(/&ETH;/g, "Ð").replace(/&Ntilde;/g, "Ñ").replace(/&Ograve;/g, "Ò").replace(/&Oacute;/g, "Ó").replace(/&Ocirc;/g, "Ô").replace(/&Otilde;/g, "Õ").replace(/&Ouml;/g, "Ö").replace(/&Oslash;/g, "Ø").replace(/&Ugrave;/g, "Ù").replace(/&Uacute;/g, "Ú").replace(/&Ucirc;/g, "Û").replace(/&Uuml;/g, "Ü").replace(/&Yacute;/g, "Ý").replace(/&THORN;/g, "Þ").replace(/&szlig;/g, "ß").replace(/&agrave;/g, "à").replace(/&aacute;/g, "á").replace(/&acirc;/g, "â").replace(/&atilde;/g, "ã").replace(/&auml;/g, "ä").replace(/&aring;/g, "å").replace(/&aelig;/g, "æ").replace(/&ccedil;/g, "ç").replace(/&egrave;/g, "è").replace(/&eacute;/g, "é").replace(/&ecirc;/g, "ê").replace(/&euml;/g, "ë").replace(/&igrave;/g, "ì").replace(/&iacute;/g, "í").replace(/&icirc;/g, "î").replace(/&iuml;/g, "ï").replace(/&eth;/g, "ð").replace(/&ntilde;/g, "ñ").replace(/&ograve;/g, "ò").replace(/&oacute;/g, "ó").replace(/&ocirc;/g, "ô").replace(/&otilde;/g, "õ").replace(/&ouml;/g, "ö").replace(/&oslash;/g, "ø").replace(/&ugrave;/g, "ù").replace(/&uacute;/g, "ú").replace(/&ucirc;/g, "û").replace(/&uuml;/g, "ü").replace(/&yacute;/g, "ý").replace(/&thorn;/g, "þ").replace(/&yuml;/g, "ÿ");
+    return str.replace(/&amp;/g, "&").replace(/&quot;/g, '"').replace(/&#34;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&nbsp;/g, ' ').replace(/&apos;/g, "'").replace(/&iexcl;/g, "¡").replace(/&cent;/g, "¢").replace(/&pound;/g, "£").replace(/&curren;/g, "¤").replace(/&yen;/g, "¥").replace(/&brvbar;/g, "¦").replace(/&sect;/g, "§").replace(/&uml;/g, "¨").replace(/&copy;/g, "©").replace(/&ordf;/g, "ª").replace(/&laquo;/g, "«").replace(/&not;/g, "¬").replace(/&shy;/g, "­").replace(/&reg;/g, "®").replace(/&macr;/g, "¯").replace(/&deg;/g, "°").replace(/&plusmn;/g, "±").replace(/&sup2;/g, "²").replace(/&sup3;/g, "³").replace(/&acute;/g, "´").replace(/&micro;/g, "µ").replace(/&para;/g, "¶").replace(/&middot;/g, "·").replace(/&cedil;/g, "¸").replace(/&sup1;/g, "¹").replace(/&ordm;/g, "º").replace(/&raquo;/g, "»").replace(/&frac14;/g, "¼").replace(/&frac12;/g, "½").replace(/&frac34;/g, "¾").replace(/&iquest;/g, "¿").replace(/&times;/g, "×").replace(/&divide;/g, "÷").replace(/&Agrave;/g, "À").replace(/&Aacute;/g, "Á").replace(/&Acirc;/g, "Â").replace(/&Atilde;/g, "Ã").replace(/&Auml;/g, "Ä").replace(/&Aring;/g, "Å").replace(/&AElig;/g, "Æ").replace(/&Ccedil;/g, "Ç").replace(/&Egrave;/g, "È").replace(/&Eacute;/g, "É").replace(/&Ecirc;/g, "Ê").replace(/&Euml;/g, "Ë").replace(/&Igrave;/g, "Ì").replace(/&Iacute;/g, "Í").replace(/&Icirc;/g, "Î").replace(/&Iuml;/g, "Ï").replace(/&ETH;/g, "Ð").replace(/&Ntilde;/g, "Ñ").replace(/&Ograve;/g, "Ò").replace(/&Oacute;/g, "Ó").replace(/&Ocirc;/g, "Ô").replace(/&Otilde;/g, "Õ").replace(/&Ouml;/g, "Ö").replace(/&Oslash;/g, "Ø").replace(/&Ugrave;/g, "Ù").replace(/&Uacute;/g, "Ú").replace(/&Ucirc;/g, "Û").replace(/&Uuml;/g, "Ü").replace(/&Yacute;/g, "Ý").replace(/&THORN;/g, "Þ").replace(/&szlig;/g, "ß").replace(/&agrave;/g, "à").replace(/&aacute;/g, "á").replace(/&acirc;/g, "â").replace(/&atilde;/g, "ã").replace(/&auml;/g, "ä").replace(/&aring;/g, "å").replace(/&aelig;/g, "æ").replace(/&ccedil;/g, "ç").replace(/&egrave;/g, "è").replace(/&eacute;/g, "é").replace(/&ecirc;/g, "ê").replace(/&euml;/g, "ë").replace(/&igrave;/g, "ì").replace(/&iacute;/g, "í").replace(/&icirc;/g, "î").replace(/&iuml;/g, "ï").replace(/&eth;/g, "ð").replace(/&ntilde;/g, "ñ").replace(/&ograve;/g, "ò").replace(/&oacute;/g, "ó").replace(/&ocirc;/g, "ô").replace(/&otilde;/g, "õ").replace(/&ouml;/g, "ö").replace(/&oslash;/g, "ø").replace(/&ugrave;/g, "ù").replace(/&uacute;/g, "ú").replace(/&ucirc;/g, "û").replace(/&uuml;/g, "ü").replace(/&yacute;/g, "ý").replace(/&thorn;/g, "þ").replace(/&yuml;/g, "ÿ");
 
 }
 
@@ -624,7 +636,7 @@ export class fromulaRef {
         if (rangetxt.indexOf(":") == -1) {
             let row = parseInt(rangetxt.replace(/[^0-9]/g, ""));
             let col = ABCatNum(rangetxt.replace(/[^A-Za-z]/g, ""));
-            let freezonFuc = _this.isfreezonFuc(rangetxt);
+            let freezonFuc = isfreezonFuc(rangetxt);
             let $row = freezonFuc[0] ? "$" : "",
                 $col = freezonFuc[1] ? "$" : "";
             
@@ -675,8 +687,8 @@ export class fromulaRef {
                 return txt;
             }
 
-            let freezonFuc0 = _this.isfreezonFuc(rangetxt[0]);
-            let freezonFuc1 = _this.isfreezonFuc(rangetxt[1]);
+            let freezonFuc0 = isfreezonFuc(rangetxt[0]);
+            let freezonFuc1 = isfreezonFuc(rangetxt[1]);
             let $row0 = freezonFuc0[0] ? "$" : "",
                 $col0 = freezonFuc0[1] ? "$" : "";
             let $row1 = freezonFuc1[0] ? "$" : "",
@@ -793,24 +805,6 @@ export class fromulaRef {
             }
         }
     }
-
-    static isfreezonFuc(txt:string) {
-        let row = txt.replace(/[^0-9]/g, "");
-        let col = txt.replace(/[^A-Za-z]/g, "");
-        let row$ = txt.substr(txt.indexOf(row) - 1, 1);
-        let col$ = txt.substr(txt.indexOf(col) - 1, 1);
-        let ret = [false, false];
-
-        if (row$ == "$") {
-            ret[0] = true;
-        }
-        if (col$ == "$") {
-            ret[1] = true;
-        }
-
-        return ret;
-    }
-
 }
 
 
@@ -1139,6 +1133,13 @@ export function getPeelOffX14(value: string): {  [key: string]: any} {
   };
 }
 
+export function getSqrefX14 (value: string) {
+    const xmSqrefLen = "<xm:sqref>".length;
+    const sqrefStart = value.indexOf("<xm:sqref>");
+    const sqrefEnd = value.indexOf("</xm:sqref>");
+    const sqref = value.substring(sqrefStart + xmSqrefLen, sqrefEnd);
+    return sqref
+}
 
 /**
  * get the value in the formula
@@ -1163,4 +1164,141 @@ export function getMultiFormulaValue(value: string): string[] {
     retArr.push(escapeCharacter(_value.replace(/&quot;|^\"|\"$/g, "")));
   }
   return retArr;
+}
+
+
+export function isfreezonFuc(txt:string) {
+    let row = txt.replace(/[^0-9]/g, "");
+    let col = txt.replace(/[^A-Za-z]/g, "");
+    let row$ = txt.substr(txt.indexOf(row) - 1, 1);
+    let col$ = txt.substr(txt.indexOf(col) - 1, 1);
+    let ret = [false, false];
+
+    if (row$ == "$") {
+        ret[0] = true;
+    }
+    if (col$ == "$") {
+        ret[1] = true;
+    }
+
+    return ret;
+}
+export function ABCToNumber(a: string) {
+    if (a == null || a.length === 0) {
+        return Number.NaN;
+    }
+    const str = a.toLowerCase().split('');
+    const al = str.length;
+    const getCharNumber = (charX: string) => charX.charCodeAt(0) - 96;
+    let numOut = 0;
+    let charnum = 0;
+    for (let i = 0; i < al; i++) {
+        charnum = getCharNumber(str[i]);
+        numOut += charnum * 26 ** (al - i - 1);
+    }
+    if (numOut === 0) {
+        return Number.NaN;
+    }
+    return numOut - 1;
+}
+const orderA = 'A'.charCodeAt(0);
+const orderZ = 'Z'.charCodeAt(0);
+/**
+ * column subscript number to letters
+ * @param n number
+ * @returns
+ */
+export function numberToABC(n: number) {
+    const len = orderZ - orderA + 1;
+
+    let s = '';
+
+    while (n >= 0) {
+        s = String.fromCharCode((n % len) + orderA) + s;
+
+        n = Math.floor(n / len) - 1;
+    }
+
+    return s;
+}
+
+export function str2num(val: string) {
+    if (val === undefined || val === null) {
+        return val;
+    }
+    try {
+        if (Number.isNaN(Number(val))) return val;
+        return Number(val);
+    } catch (error) {
+        return val
+    }
+}
+export function generateRandomId(n: number = 21, alphabet?: string): string {
+    if (alphabet) {
+        return customAlphabet(alphabet, n)();
+    }
+
+    return nanoid(n);
+}
+export function jsonParse(str?: string) {
+    if (!str) return {};
+    try {
+        return JSON.parse(str);
+    } catch (error) {
+        return null
+    }
+}
+export function isObject(obj: any): obj is { [key: string]: any } {
+    return Object.prototype.toString.call(obj) === '[object Object]';
+}
+/**
+ * 删除对象中含undefined的值
+ * @param object 
+ * @returns 
+ */
+export function removeEmptyAttr (object: any) {
+    for (const key in object) {
+        if (Object.prototype.hasOwnProperty.call(object, key)) {
+            if (object[key] === undefined) {
+                delete object[key]; // 删除值为 undefined 的属性
+            } else if (isObject(object[key]) && object[key] !== null) {
+                removeEmptyAttr(object[key]); // 对子对象递归
+            }
+        }
+    }
+    return object;
+}
+
+// if (row0 == null && row1 == null) {
+//     return sheettxt + chatatABC(column0) + ":" + chatatABC(column1);
+// }
+// else if (column0 == null && column1 == null) {
+//     return sheettxt + (row0 + 1) + ":" + (row1 + 1);
+// }
+// else {
+//     if (column0 == column1 && row0 == row1) {
+//         return sheettxt + chatatABC(column0) + (row0 + 1);
+//     }
+//     else {
+//         return sheettxt + chatatABC(column0) + (row0 + 1) + ":" + chatatABC(column1) + (row1 + 1);
+//     }
+// }
+export function getRangeList(range: any): any[] {
+    const list: any[] = []
+    if (!range) return [];
+    const { startRow, startColumn, endRow, endColumn } = range;
+    
+    for (let row = startRow; row <= endRow; row++) {
+        for (let col = startColumn; col <= endColumn; col++) {
+            list.push(`${numberToABC(col)}${row + 1}`)
+        }
+    }
+    return list
+}
+
+export function isEmpty(value: any) {
+    if (value === undefined || value === null) {
+        return true;
+    }
+    return false
 }

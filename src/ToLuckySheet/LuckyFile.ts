@@ -4,8 +4,9 @@ import {IuploadfileList, IattributeList} from "../ICommon";
 import {workBookFile, coreFile, appFile, stylesFile, sharedStringsFile,numFmtDefault,theme1File,calcChainFile,workbookRels, numFmtDefaultMap} from "../common/constant";
 import { ReadXml,IStyleCollections,Element } from "./ReadXml";
 import {getXmlAttibute} from "../common/method";
-import { LuckyFileBase,LuckyFileInfo,LuckySheetBase,LuckySheetCelldataBase,LuckySheetCelldataValue,LuckySheetCellFormat } from "./LuckyBase";
+import { LuckyFileBase,LuckyFileInfo,LuckySheetBase,LuckySheetCelldataBase,LuckySheetCelldataValue,LuckySheetCellFormat, WorkBookInfo } from "./LuckyBase";
 import {ImageList} from "./LuckyImage";
+import { LuckyDefineNames } from "./LuckyDefineName";
 
 export class LuckyFile extends LuckyFileBase {
 
@@ -37,6 +38,7 @@ export class LuckyFile extends LuckyFileBase {
         this.styles["clrScheme"] =  this.readXml.getElementsByTagName("a:clrScheme/a:dk1|a:lt1|a:dk2|a:lt2|a:accent1|a:accent2|a:accent3|a:accent4|a:accent5|a:accent6|a:hlink|a:folHlink", theme1File);
         this.styles["indexedColors"] =  this.readXml.getElementsByTagName("colors/indexedColors/rgbColor", stylesFile);
         this.styles["mruColors"] =  this.readXml.getElementsByTagName("colors/mruColors/color", stylesFile);
+        this.styles['dxfs'] = this.readXml.getElementsByTagName("dxfs/dxf", stylesFile);
 
         this.imageList = new ImageList(files);
 
@@ -287,9 +289,9 @@ export class LuckyFile extends LuckyFileBase {
 
             cy_n = cy_n + toRowOff - y_n;
 
-            console.log(defaultColWidth, colhidden , columnlen);
-            console.log(fromCol, this.columnWidthSet[fromCol] , fromColOff);
-            console.log(toCol, this.columnWidthSet[toCol] , toColOff, JSON.stringify(this.columnWidthSet));
+            // console.log(defaultColWidth, colhidden , columnlen);
+            // console.log(fromCol, this.columnWidthSet[fromCol] , fromColOff);
+            // console.log(toCol, this.columnWidthSet[toCol] , toColOff, JSON.stringify(this.columnWidthSet));
 
             imageObject.originWidth = cx_n;
             imageObject.originHeight = cy_n;
@@ -343,6 +345,12 @@ export class LuckyFile extends LuckyFileBase {
         return drawingRelsFile;
     }
 
+    private handleWorkBookInfo = () => {
+        this.workbook = new WorkBookInfo();
+        const defineNames = new LuckyDefineNames(this.readXml)
+        if (defineNames?.defineNames) this.workbook.defineNames = defineNames.defineNames
+    }
+
     /**
     * @return All sheet base information widthout cell and config
     */
@@ -363,6 +371,7 @@ export class LuckyFile extends LuckyFileBase {
         // return "";
 
         this.getWorkBookInfo();
+        this.handleWorkBookInfo();
         this.getSheetsFull();
 
         // for(let i=0;i<this.sheets.length;i++){
@@ -392,6 +401,7 @@ export class LuckyFile extends LuckyFileBase {
     private toJsonString(file:ILuckyFile):string{
         let LuckyOutPutFile = new LuckyFileBase();
         LuckyOutPutFile.info = file.info;
+        LuckyOutPutFile.workbook = file.workbook;
         LuckyOutPutFile.sheets = [];
 
         file.sheets.forEach((sheet)=>{
@@ -511,6 +521,18 @@ export class LuckyFile extends LuckyFileBase {
           
             if (sheet.hide != null) {
               sheetout.hide = sheet.hide;
+            }
+
+            if (sheet.conditionalFormatting != null && sheet.conditionalFormatting.length) {
+                sheetout.conditionalFormatting = sheet.conditionalFormatting;
+            }
+
+            if (sheet.dataVerificationList != null && sheet.dataVerificationList.length) {
+                sheetout.dataVerificationList = sheet.dataVerificationList;
+            }
+
+            if (sheet.filter != null) {
+                sheetout.filter = sheet.filter;
             }
             
             LuckyOutPutFile.sheets.push(sheetout);

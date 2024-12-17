@@ -1,4 +1,4 @@
-import JSZip from "jszip";
+import JSZip from "@progress/jszip-esm";
 import {IuploadfileList} from "./ICommon";
 import {getBinaryContent} from "./common/method"
 
@@ -7,7 +7,7 @@ export class HandleZip{
     uploadFile:File; 
     workBook:JSZip; 
     
-    constructor(file?:File){
+    constructor(file?:any){
         // Support nodejs fs to read files
         // if(file instanceof File){
             this.uploadFile = file;
@@ -15,8 +15,8 @@ export class HandleZip{
     }
 
     unzipFile(successFunc:(file:IuploadfileList)=>void, errorFunc:(err:Error)=>void):void { 
-        // var new_zip:JSZip = new JSZip();
-        JSZip.loadAsync(this.uploadFile)                                   // 1) read the Blob
+        var new_zip:JSZip = new JSZip();
+        new_zip.loadAsync(this.uploadFile)                                   // 1) read the Blob
         .then(function(zip:any) {
             let fileList:IuploadfileList = <IuploadfileList>{}, lastIndex:number = Object.keys(zip.files).length, index:number=0;
             zip.forEach(function (relativePath:any, zipEntry:any) {  // 2) print entries
@@ -55,7 +55,7 @@ export class HandleZip{
                 throw err; // or handle err
             }
         
-            JSZip.loadAsync(data).then(function(zip:any) {
+            new_zip.loadAsync(data).then(function(zip:any) {
                 let fileList:IuploadfileList = <IuploadfileList>{}, lastIndex:number = Object.keys(zip.files).length, index:number=0;
                 zip.forEach(function (relativePath:any, zipEntry:any) {  // 2) print entries
                     let fileName = zipEntry.name;

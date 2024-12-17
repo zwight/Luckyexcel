@@ -1,6 +1,16 @@
+import { LuckyConditionFormat } from "./LuckyCondition";
+import { IDefinedNames } from "./LuckyDefineName";
+import { LuckyFilterFormat } from "./luckyFilter";
+import { LuckyVerificationFormat } from "./LuckyVerification";
+
 export interface ILuckyFile{
     info:ILuckyFileInfo,//File information, name,password,date,createor etc. 
     sheets:IluckySheet[],//Sheets, include all sheet data
+    workbook: IWorkBookInfo,
+}
+
+export interface IWorkBookInfo {
+    defineNames?: IDefinedNames
 }
 
 export interface ILuckyFileInfo{
@@ -51,6 +61,10 @@ export interface IluckySheet{
     dataVerification: IluckysheetDataVerification;
 		hyperlink: IluckysheetHyperlink, // hyperlinks
 		hide: number; // sheet hide
+
+    conditionalFormatting: LuckyConditionFormat[];
+    dataVerificationList: LuckyVerificationFormat[];
+    filter: LuckyFilterFormat
 }
 
 //luckysheet general selection
@@ -177,6 +191,7 @@ export interface IluckySheetCelldataValue{
 export interface ILuckySheetCellFormat {
     fa:string //Format definition string
     t:string // Cell Type
+    s: Array<IluckySheetCelldataValue | ILuckyInlineString> | undefined;
 }
 
 export interface IluckySheetCelldataValueMerge{
@@ -304,6 +319,7 @@ export interface IluckyImage {
     originWidth: number
     src: string
     type: string
+    [key: string]: any;
 }
 
 export interface IluckyImageBorder {
