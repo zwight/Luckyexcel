@@ -77,7 +77,7 @@
     });
 </script>
 ```
-> 案例 [Demo index.html](./src/index.html)展示了详细的用法
+> 案例 [univer-import-export](https://stackblitz.com/edit/vitejs-vite-phdnaxdt)展示了详细的用法
 
 ### ES 和 Node.js
 

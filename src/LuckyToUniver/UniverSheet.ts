@@ -55,8 +55,8 @@ export class UniverSheet extends UniverSheetBase {
             if (celldata?.length) {
                 const { cellData, rowCount, colCount } = this.handleCellData(celldata, config);
                 this.cellData = cellData;
-                this.rowCount = this.rowCount > rowCount ? this.rowCount : rowCount + 10;
-                this.columnCount = this.columnCount > colCount ? this.columnCount : colCount + 5;
+                this.rowCount = this.rowCount > rowCount ? this.rowCount : rowCount + 1;
+                this.columnCount = this.columnCount > colCount ? this.columnCount : colCount + 1;
             }
             console.log(this.rowCount, this.columnCount)
             this.handleRowAndColumnData(config);

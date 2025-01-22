@@ -185,6 +185,7 @@ export interface IluckySheetCelldataValue{
     rt:number | undefined, //text rotation angle 0-180 alignment
     f: string | undefined, //formula
     qp:number | undefined //quotePrefix, show number as string
+    ti:number | undefined //text indent
 }
 
 
