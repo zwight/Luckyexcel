@@ -75,7 +75,7 @@ The goal is to support all features supported by Univer
     });
 </script>
 ```
-> Case [Demo index.html](./src/index.html) shows the detailed usage
+> Case [univer-import-export](https://stackblitz.com/edit/vitejs-vite-phdnaxdt) shows the detailed usage
 
 ### ES and Node.js
 
