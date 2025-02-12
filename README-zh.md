@@ -47,6 +47,21 @@
             console.log(error);
         }
     );
+    // Univer导入CSV文件
+    LuckyExcel.transformCsvToUniver(
+        file,
+        async (data: any) => {
+            // 获得转化后的表格数据后，使用univer初始化，或者更新已有的univer工作簿
+            // 注：univer需要引入依赖包和初始化表格容器才可以使用
+            univer.createUnit<IWorkbookData, Workbook>(
+                UniverInstanceType.UNIVER_SHEET,
+                data || {}
+            );
+        },
+        (error: any) => {
+            console.log(error);
+        }
+    );
     // 导出Univer到CSV文件
     // snapshot为Univer快照数据，getBuffer：true不会下载文件，只会返回csv内容，false会直接下载
     // sheetName：因为Univer可能存在多个sheet，csv没有sheet，sheetName有值的情况下只会下载指定sheet名称的数据，不传会下载所有sheet，文件名为${fileName}_${sheet.name}

@@ -1,6 +1,6 @@
 {
   "name": "@zwight/luckyexcel",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "An excel import and export library adapted to Luckysheet",
   "main": "dist/luckyexcel.cjs.js",
   "module": "dist/luckyexcel.esm.js",
@@ -25,6 +25,7 @@
     "@babel/preset-typescript": "^7.26.0",
     "@rollup/plugin-typescript": "^6.1.0",
     "@types/node": "^22.10.2",
+    "@types/papaparse": "^5.3.15",
     "babelify": "^10.0.0",
     "browser-sync": "^3.0.3",
     "browserify": "^17.0.1",
@@ -49,6 +50,7 @@
     "@univerjs/core": "^0.4.2",
     "@zwight/exceljs": "4.4.2-beta1",
     "dayjs": "^1.10.6",
-    "nanoid": "^3.3.7"
+    "nanoid": "^3.3.7",
+    "papaparse": "^5.5.2"
   }
 }

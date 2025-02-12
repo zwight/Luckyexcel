@@ -11,6 +11,8 @@ import { CSV } from "./UniverToCsv/CSV";
 import { isObject } from "./common/method";
 import { UniverWorkBook } from "./LuckyToUniver/UniverWorkBook";
 import { IWorkbookData } from "@univerjs/core";
+import { formatSheetData, getDataByFile } from "./common/utils";
+import { UniverCsvWorkBook } from "./LuckyToUniver/UniverCsvWorkBook";
 export class LuckyExcel {
     constructor() { }
     static transformExcelToLucky(excelFile: File,
@@ -69,9 +71,11 @@ export class LuckyExcel {
     }
 
 
-    static transformExcelToUniver(excelFile: File,
+    static transformExcelToUniver(
+        excelFile: File,
         callback?: (files: IWorkbookData, fs?: string) => void,
-        errorHandler?: (err: Error) => void) {
+        errorHandler?: (err: Error) => void
+    ) {
         let handleZip: HandleZip = new HandleZip(excelFile);
 
         handleZip.unzipFile(function (files: IuploadfileList) {
@@ -91,6 +95,22 @@ export class LuckyExcel {
                     console.error(err);
                 }
             });
+    }
+
+    static transformCsvToUniver(
+        file: File,
+        callback?: (files: IWorkbookData, fs?: string[][]) => void,
+        errorHandler?: (err: Error) => void
+    ) {
+        try {
+            getDataByFile({ file }).then((source) => {
+                const sheetData = formatSheetData(source, file)!;
+                const univerData = new UniverCsvWorkBook(sheetData || [])
+                callback?.(univerData.mode, sheetData);
+            })
+        } catch (error) {
+            errorHandler(error);
+        }
     }
 
     static async transformUniverToExcel(params: {
@@ -158,7 +178,7 @@ export class LuckyExcel {
             error(err)
         }
     }
-    
+
     private static downloadFile(fileName: string, buffer: exceljs.Buffer | string) {
         const link = document.createElement('a');
         let blob: Blob;
