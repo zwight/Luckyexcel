@@ -45,6 +45,21 @@ The goal is to support all features supported by Univer
             console.log(error);
         }
     );
+    // Univer import CSV file
+    LuckyExcel.transformCsvToUniver(
+        file,
+        async (data: any) => {
+            // After obtaining the converted table data, use univer to initialize, or update the existing univer workbook
+            // Note: Univer needs to introduce dependent packages and initialize the table container before it can be used
+            univer.createUnit<IWorkbookData, Workbook>(
+                UniverInstanceType.UNIVER_SHEET,
+                data || {}
+            );
+        },
+        (error: any) => {
+            console.log(error);
+        }
+    );
     // Export Univer to CSV file
     // snapshot is the Univer snapshot data, getBuffer: true will not download the file, only return the csv content, false will download directly
     // sheetName: Because Univer may have multiple sheets, csv does not have sheets, if sheetName has a value, only the data of the specified sheet name will be downloaded. If it is not passed, all sheets will be downloaded. The file name is ${fileName}_${sheet.name}

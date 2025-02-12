@@ -10,7 +10,13 @@ import {
     IWorksheetData,
     SheetTypes,
 } from '@univerjs/core';
-
+export interface UniverSheetBaseParams {
+    id?: string;
+    name?: string;
+    cellData?: IObjectMatrixPrimitiveType<ICellData>;
+    rowCount?: number;
+    colCount?: number;
+}
 export class UniverSheetBase implements IWorksheetData {
     id: string;
     name!: string;
@@ -46,9 +52,13 @@ export class UniverSheetBase implements IWorksheetData {
     rightToLeft: BooleanNumber = 0;
     selections: string[] = [];
 
-    constructor(id?: string, name?: string, cellData?: IObjectMatrixPrimitiveType<ICellData>) {
+    constructor(params?: UniverSheetBaseParams) {
+        const { id, name, cellData, rowCount = 0, colCount = 0 } = params || {};
         this.id = id || '';
         this.name = name || '';
         this.cellData = cellData || {};
+
+        this.rowCount = Math.max(this.rowCount, rowCount);
+        this.columnCount = Math.max(this.columnCount, colCount);
     }
 }

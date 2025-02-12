@@ -1,11 +1,20 @@
-import { IStyleData, IWorkbookData, IWorksheetData, LocaleType, Nullable } from '@univerjs/core';
-import { IResources } from '@univerjs/core/lib/types/services/resource-manager/type';
+import {
+    ICellData,
+    IObjectMatrixPrimitiveType,
+    IResources,
+    IStyleData,
+    IWorkbookData,
+    IWorksheetData,
+    LocaleType,
+    Nullable,
+} from '@univerjs/core';
 import { UniverSheetBase } from './UniverSheetBase';
+import { generateRandomId } from '../common/method';
 
 export class UniverCsvWorkBook implements IWorkbookData {
-    id!: string;
+    id: string;
     rev?: number | undefined;
-    name!: string;
+    name: string;
     appVersion!: string;
     locale!: LocaleType;
     styles!: Record<string, Nullable<IStyleData>>;
@@ -13,16 +22,27 @@ export class UniverCsvWorkBook implements IWorkbookData {
     sheets!: { [sheetId: string]: Partial<IWorksheetData> };
     resources?: IResources | undefined;
     constructor(data: string[][]) {
-        const cellData = data.map((row) => {
-            return row.map((cell) => {
-                return {
-                    v: cell || '',
-                };
+        console.log(data);
+        const cellData: IObjectMatrixPrimitiveType<ICellData> = {};
+
+        let rowCount = 0,
+            colCount = 0;
+
+        data.forEach((row, rowIndex) => {
+            if (rowIndex + 1 > rowCount) rowCount = rowIndex + 1;
+            row.forEach((col, colIndex) => {
+                if (colIndex + 1 > colCount) colCount = colIndex + 1;
+
+                if (!cellData[rowIndex]) cellData[rowIndex] = {};
+                cellData[rowIndex][colIndex] = { v: col || '' };
             });
         });
-        const id = `sheet1`;
-        const sheet = new UniverSheetBase(id, id, cellData);
-        this.sheets = { [id]: sheet };
+        const sheetId = `sheet1`;
+        const sheet = new UniverSheetBase({ id: sheetId, name: sheetId, cellData, rowCount, colCount });
+        this.sheets = { [sheetId]: sheet };
+        this.sheetOrder = [sheetId];
+        this.id = generateRandomId(6);
+        this.name = this.id;
     }
     get mode(): IWorkbookData {
         return {
