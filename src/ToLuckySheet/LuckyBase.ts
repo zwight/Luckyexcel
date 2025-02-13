@@ -140,6 +140,8 @@ export class LuckySheetborderInfoCellValue implements IluckySheetborderInfoCellV
     r: IluckySheetborderInfoCellValueStyle
     t: IluckySheetborderInfoCellValueStyle
     b: IluckySheetborderInfoCellValueStyle
+    tl_br: IluckySheetborderInfoCellValueStyle
+    bl_tr: IluckySheetborderInfoCellValueStyle
 }
 
 export class LuckySheetborderInfoCellValueStyle implements IluckySheetborderInfoCellValueStyle{

@@ -60,6 +60,8 @@ export const handleStyle = (
             r: handleBorder(borderInfo.value?.r),
             b: handleBorder(borderInfo.value?.b),
             l: handleBorder(borderInfo.value?.l),
+            bl_tr: handleBorder(borderInfo.value?.bl_tr),
+            tl_br: handleBorder(borderInfo.value?.tl_br),
         };
     }
     const TextWrap: any = {

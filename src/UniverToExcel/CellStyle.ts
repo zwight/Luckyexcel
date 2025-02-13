@@ -67,12 +67,17 @@ function borderConvert(border: any) {
         }
         return st
     }
-
+    const diagonal = template(border.bl_tr || border.tl_br) || {}
     return {
         top: template(border.t),
         right: template(border.r),
         bottom: template(border.b),
         left: template(border.l),
+        diagonal: {
+            up: border.bl_tr ? true : false,
+            down: border.tl_br ? true : false,
+            ...diagonal
+        }
     }
 
 }

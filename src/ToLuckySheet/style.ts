@@ -102,6 +102,19 @@ export function handleBorder(border: Element, styles: IStyleCollections) {
         borderCellValue.b = bottom;
         isAdd = true;
     }
+
+    if (diagonal != null && diagonal.color != null) {
+        const diagonalUp = border.attributeList.diagonalUp;
+        const diagonalDown = border.attributeList.diagonalDown;
+        if (diagonalUp === "1") {
+            borderCellValue.bl_tr = diagonal;
+        }
+        if (diagonalDown === "1") {
+            borderCellValue.tl_br = diagonal;
+        }
+        isAdd = true;
+    }
+
     return {
         borderCellValue,
         isAdd

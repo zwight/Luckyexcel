@@ -198,7 +198,7 @@ export class LuckySheet extends LuckySheetBase {
                 ...d,
                 parentAttribute: { sqref: sqref?.value },
                 isExtLst: true,
-                extLst: undefined
+                extLst: undefined as any
             }))
         })?.flat() || [];
 

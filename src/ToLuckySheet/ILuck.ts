@@ -239,7 +239,9 @@ export interface IluckySheetborderInfoCellValue{
     l: IluckySheetborderInfoCellValueStyle,
     r: IluckySheetborderInfoCellValueStyle,
     t: IluckySheetborderInfoCellValueStyle,
-    b: IluckySheetborderInfoCellValueStyle
+    b: IluckySheetborderInfoCellValueStyle,
+    tl_br: IluckySheetborderInfoCellValueStyle
+    bl_tr: IluckySheetborderInfoCellValueStyle
 }
 export interface IluckySheetborderInfoCellValueStyle{
     "style": number,
