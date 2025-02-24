@@ -252,7 +252,8 @@ export class LuckySheet extends LuckySheetBase {
         let drawingFile = allFileOption.drawingFile, drawingRelsFile = allFileOption.drawingRelsFile;
         if(drawingFile!=null && drawingRelsFile!=null){
             let twoCellAnchors = this.readXml.getElementsByTagName("xdr:twoCellAnchor", drawingFile);
-
+            let oneCellAnchors = this.readXml.getElementsByTagName("xdr:oneCellAnchor", drawingFile);
+            twoCellAnchors=[...twoCellAnchors,...oneCellAnchors];
             if(twoCellAnchors!=null && twoCellAnchors.length>0){
                 for(let i=0;i<twoCellAnchors.length;i++){
                     let twoCellAnchor = twoCellAnchors[i];
@@ -262,8 +263,12 @@ export class LuckySheet extends LuckySheetBase {
 
                     let xdr_blipfills = twoCellAnchor.getInnerElements("a:blip");
                     if(xdrFroms!=null && xdr_blipfills!=null && xdrFroms.length>0 && xdr_blipfills.length>0){
-                        let xdrFrom = xdrFroms[0], xdrTo = xdrTos[0],xdr_blipfill = xdr_blipfills[0];
-                        
+                        let xdrFrom = xdrFroms[0], xdrTo, xdrExt,xdr_blipfill = xdr_blipfills[0];
+                        if(xdrTos){
+                            xdrTo = xdrTos[0];
+                        }else{
+                            xdrExt = twoCellAnchor.getInnerElements("xdr:ext")[0]
+                        }
                         let rembed = getXmlAttibute(xdr_blipfill.attributeList, "r:embed", null);
 
                         let imageObject: any = this.getBase64ByRid(rembed, drawingRelsFile);
@@ -293,12 +298,19 @@ export class LuckySheet extends LuckySheetBase {
                         imageObject.fromColOff = getPxByEMUs(this.getXdrValue(xdrFrom.getInnerElements("xdr:colOff")));
                         imageObject.fromRow= this.getXdrValue(xdrFrom.getInnerElements("xdr:row"));
                         imageObject.fromRowOff = getPxByEMUs(this.getXdrValue(xdrFrom.getInnerElements("xdr:rowOff")));
-
-                        imageObject.toCol = this.getXdrValue(xdrTo.getInnerElements("xdr:col"));
-                        imageObject.toColOff = getPxByEMUs(this.getXdrValue(xdrTo.getInnerElements("xdr:colOff")));
-                        imageObject.toRow = this.getXdrValue(xdrTo.getInnerElements("xdr:row"));
-                        imageObject.toRowOff = getPxByEMUs(this.getXdrValue(xdrTo.getInnerElements("xdr:rowOff")));
-
+                        if(xdrTo){
+                            imageObject.toCol = this.getXdrValue(xdrTo.getInnerElements("xdr:col"));
+                            imageObject.toColOff = getPxByEMUs(this.getXdrValue(xdrTo.getInnerElements("xdr:colOff")));
+                            imageObject.toRow = this.getXdrValue(xdrTo.getInnerElements("xdr:row"));
+                            imageObject.toRowOff = getPxByEMUs(this.getXdrValue(xdrTo.getInnerElements("xdr:rowOff")));
+                        }else{
+                            let a = xdrExt.attributeList
+                            cx_n = getPxByEMUs(parseInt(a.cx), "c"),cy_n = getPxByEMUs(parseInt(a.cy));
+                            imageObject.toCol = imageObject.fromCol;
+                            imageObject.toColOff = Number(imageObject.fromColOff)+cx_n;
+                            imageObject.toRow = imageObject.fromRow;
+                            imageObject.toRowOff = Number(imageObject.fromRowOff)+cy_n;
+                        }
                         imageObject.originWidth = cx_n;
                         imageObject.originHeight = cy_n;
                         
