@@ -305,7 +305,7 @@ export class LuckySheet extends LuckySheetBase {
                             imageObject.toRowOff = getPxByEMUs(this.getXdrValue(xdrTo.getInnerElements("xdr:rowOff")));
                         }else{
                             let a = xdrExt.attributeList
-                            cx_n = getPxByEMUs(parseInt(a.cx), "c"),cy_n = getPxByEMUs(parseInt(a.cy));
+                            cx_n = getPxByEMUs(parseInt(a.cx)),cy_n = getPxByEMUs(parseInt(a.cy));
                             imageObject.toCol = imageObject.fromCol;
                             imageObject.toColOff = Number(imageObject.fromColOff)+cx_n;
                             imageObject.toRow = imageObject.fromRow;

@@ -724,6 +724,12 @@ export class LuckySheetCelldata extends LuckySheetCelldataBase {
             cellValue.qp = parseInt(quotePrefix);
         }
 
+        if (t !== null && !cellValue.ct?.t) {
+            let cellFormat = new LuckySheetCellFormat();
+            cellFormat.t = t || 'd';
+            cellValue.ct = cellFormat;
+        }
+
         return cellValue;
 
     }

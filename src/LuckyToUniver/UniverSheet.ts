@@ -121,19 +121,20 @@ export class UniverSheet extends UniverSheetBase {
             let cellType = v.ct?.t && tMap[v.ct?.t] ? tMap[v.ct?.t] : CellValueType.NUMBER;
 
             let val = cellType === CellValueType.NUMBER ? str2num(v.v) : v.v;
-            if (cellType === CellValueType.BOOLEAN) val = v.v ? 1 : 0;
+            if (cellType === CellValueType.BOOLEAN) val = v.v == '1' ? 1 : 0;
 
             if (Number.isNaN(Number(val)) && cellType === CellValueType.NUMBER)
                 cellType = CellValueType.STRING;
             if (this.hyperLink.findIndex((d) => d.column === row.c && d.row === row.r) > -1)
                 cellType = CellValueType.STRING;
 
+            const f = v.f?.replace(/=_xlfn./g, '=');
             const cell: ICellData = {
                 // custom: v., // User stored custom fields
-                f: v.f,
+                f,
                 // p: , // The unique key, a random string, is used for the plug-in to associate the cell. When the cell information changes, the plug-in does not need to change the data, reducing the pressure on the back-end interface id?: string.
                 s: handleStyle(row, borderConf),
-                si: v.f, // Id of the formula.
+                si: f, // Id of the formula.
                 t: cellType,
                 v: val,
             };
