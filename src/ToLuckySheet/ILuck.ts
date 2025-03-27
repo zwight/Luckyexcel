@@ -193,6 +193,7 @@ export interface ILuckySheetCellFormat {
     fa:string //Format definition string
     t:string // Cell Type
     s: Array<IluckySheetCelldataValue | ILuckyInlineString> | undefined;
+    ci: any // Cell Image
 }
 
 export interface IluckySheetCelldataValueMerge{

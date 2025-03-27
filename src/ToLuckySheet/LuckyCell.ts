@@ -1,10 +1,11 @@
-import { IluckySheetborderInfoCellForImp, IluckySheetCelldataValue, IluckySheetCelldataValueMerge, ILuckySheetCellFormat } from "./ILuck";
+import { IluckyImageDefault, IluckySheetborderInfoCellForImp } from "./ILuck";
 import { ReadXml, Element, IStyleCollections, getColor, getlineStringAttr } from "./ReadXml";
-import { getXmlAttibute, getColumnWidthPixel, getRowHeightPixel, getcellrange, escapeCharacter, isChinese, isJapanese, isKoera, isContainMultiType } from "../common/method";
-import { ST_CellType, indexedColors, OEM_CHARSET, borderTypes, fontFamilys } from "../common/constant"
-import { IattributeList, stringToNum } from "../ICommon";
-import { LuckySheetborderInfoCellValueStyle, LuckySheetborderInfoCellForImp, LuckySheetborderInfoCellValue, LuckySheetCelldataBase, LuckySheetCelldataValue, LuckySheetCellFormat, LuckyInlineString } from "./LuckyBase";
+import { getXmlAttibute, getcellrange, escapeCharacter, isChinese, isJapanese, isKoera, getPxByEMUs } from "../common/method";
+import { ST_CellType, cellImagesRels } from "../common/constant"
+import { IattributeList } from "../ICommon";
+import { LuckySheetborderInfoCellForImp, LuckySheetCelldataBase, LuckySheetCelldataValue, LuckySheetCellFormat, LuckyInlineString } from "./LuckyBase";
 import { getBackgroundByFill, getFontStyle, handleBorder } from './style'
+import { ImageList } from "./LuckyImage";
 
 export class LuckySheetCelldata extends LuckySheetCelldataBase {
     _borderObject: IluckySheetborderInfoCellForImp
@@ -18,8 +19,20 @@ export class LuckySheetCelldata extends LuckySheetCelldataBase {
     private styles: IStyleCollections
     private sharedStrings: Element[]
     private mergeCells: Element[]
-
-    constructor(cell: Element, styles: IStyleCollections, sharedStrings: Element[], mergeCells: Element[], sheetFile: string, ReadXml: ReadXml) {
+    private cellImages: Element[]
+    private imageList:ImageList
+    private cellSize: { width: number, height: number }
+    constructor(
+        cell: Element, 
+        cellSize: { width: number, height: number },
+        styles: IStyleCollections, 
+        sharedStrings: Element[], 
+        mergeCells: Element[], 
+        sheetFile: string, 
+        cellImages: Element[], 
+        imageList: ImageList, 
+        ReadXml: ReadXml
+    ) {
         //Private
         super();
         this.cell = cell;
@@ -28,6 +41,9 @@ export class LuckySheetCelldata extends LuckySheetCelldataBase {
         this.sharedStrings = sharedStrings;
         this.readXml = ReadXml;
         this.mergeCells = mergeCells;
+        this.cellImages = cellImages;
+        this.imageList = imageList;
+        this.cellSize = cellSize;
 
         let attrList = cell.attributeList;
         let r = attrList.r, s = attrList.s, t = attrList.t;
@@ -714,6 +730,15 @@ export class LuckySheetCelldata extends LuckySheetCelldataBase {
             else if (t == ST_CellType["InlineString"] && v != null) {
                 cellValue.v = "'" + value;
             }
+            else if (t == ST_CellType["String"] && value.includes('=DISPIMG')) {
+                let cellFormat = cellValue.ct;
+                if (cellFormat == null) {
+                    cellFormat = new LuckySheetCellFormat();
+                }
+                cellFormat.t = "str";
+                cellFormat.ci = this.getCellImage(cellValue, value);
+                cellValue.ct = cellFormat;
+            }
             else {
                 value = escapeCharacter(value);
                 cellValue.v = value;
@@ -745,5 +770,82 @@ export class LuckySheetCelldata extends LuckySheetCelldataBase {
         });
     };
 
+    private getCellImage(cellValue: LuckySheetCelldataValue, value: string): any {
+        const id = this.extractImageId(value);
+        let ci: any = {};
+        this.cellImages.forEach((element) => {
+            const pic = element.getInnerElements('xdr:pic')[0];
+
+            const picpr = pic.getInnerElements('xdr:nvPicPr')[0]
+            const nvpr = picpr.getInnerElements('xdr:cNvPr')[0];
+
+            const blipfill = pic.getInnerElements('xdr:blipFill')[0]
+            const blip = blipfill.getInnerElements('a:blip')[0];
+
+            const picId = nvpr.get('name');
+            const picRid = blip.get('r:embed') as string;
+
+            if (id == picId) {
+                const obj = this.getBase64ByRid(picRid, cellImagesRels)
+                ci = obj;
+
+                let x_n =0,y_n = 0;
+                let cx_n = 0, cy_n = 0;
+                const sp = pic.getInnerElements('xdr:spPr')[0];
+                const xfrm = sp.getInnerElements('a:xfrm')[0];
+                const off = xfrm.getInnerElements('a:off')[0];
+                const ext = xfrm.getInnerElements('a:ext')[0];
+                cx_n = getPxByEMUs(parseInt(ext.get('cx') as string)),cy_n = getPxByEMUs(parseInt(ext.get('cy') as string));
+                x_n = getPxByEMUs(parseInt(off.get('x') as string)),y_n = getPxByEMUs(parseInt(off.get('y') as string));
+
+                const rateX = cx_n / this.cellSize.width;
+                const rateY = cy_n / this.cellSize.height;
+
+                if(rateX > 1 && rateX > rateY) {
+                    cy_n = cy_n / rateX;
+                    cx_n = this.cellSize.width;
+                }
+
+                if (rateY > 1 && rateY > rateX) {
+                    cx_n = cx_n / rateY;
+                    cy_n = this.cellSize.height;
+                }
+                let imageDefault:IluckyImageDefault = {
+                    height: cy_n,
+                    left: x_n,
+                    top: y_n,
+                    width: cx_n
+                }
+                ci.default = imageDefault;
+                ci.descr = nvpr.get('descr');
+            }
+        })
+        return ci
+    }
+    private extractImageId(formula: string) {
+        const regex = /ID_[A-Za-z0-9]{32}/;
+        const match = formula.match(regex);
+        return match ? match[0] : null;
+    }
+    private getBase64ByRid(rid:string, drawingRelsFile:string){
+        let Relationships = this.readXml.getElementsByTagName("Relationships/Relationship", drawingRelsFile);
+
+        if(Relationships!=null && Relationships.length>0){
+            for(let i=0;i<Relationships.length;i++){
+                let Relationship = Relationships[i];
+                let attrList = Relationship.attributeList;
+                let Id = getXmlAttibute(attrList, "Id", null);
+                let src = getXmlAttibute(attrList, "Target", null);
+                if(Id == rid){
+                    src = src.replace(/\.\.\//g, "");
+                    src = "xl/" + src;
+                    let imgage = this.imageList.getImageByName(src);
+                    return imgage;
+                }
+            }
+        }
+
+        return {};
+    }
 }
 

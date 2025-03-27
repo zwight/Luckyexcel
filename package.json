@@ -1,9 +1,22 @@
 {
   "name": "@zwight/luckyexcel",
-  "version": "1.0.7",
+  "version": "1.1.2",
   "description": "An excel import and export library adapted to Luckysheet",
   "main": "dist/luckyexcel.cjs.js",
   "module": "dist/luckyexcel.esm.js",
+  "typings": "dist/main.esm.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/main.esm.d.ts",
+        "default": "./dist/luckyexcel.esm.js"
+      },
+      "require": {
+        "types": "./dist/main.umd.d.ts",
+        "default": "./dist/luckyexcel.cjs.js"
+      }
+    }
+  },
   "scripts": {
     "build": "gulp build",
     "dev": "gulp dev"
@@ -48,7 +61,7 @@
   "dependencies": {
     "@progress/jszip-esm": "^1.0.3",
     "@univerjs/core": "^0.4.2",
-    "@zwight/exceljs": "4.4.2-beta1",
+    "@zwight/exceljs": "4.4.2",
     "dayjs": "^1.10.6",
     "nanoid": "^3.3.7",
     "papaparse": "^5.5.2"

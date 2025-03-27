@@ -1,10 +1,10 @@
 ﻿import { ILuckyFile,IluckySheetRowAndColumnHidden,IluckySheetRowAndColumnLen} from "./ILuck";
 import { LuckySheet} from "./LuckySheet";
 import {IuploadfileList, IattributeList} from "../ICommon";
-import {workBookFile, coreFile, appFile, stylesFile, sharedStringsFile,numFmtDefault,theme1File,calcChainFile,workbookRels, numFmtDefaultMap} from "../common/constant";
+import {workBookFile, coreFile, appFile, stylesFile, sharedStringsFile,numFmtDefault,theme1File,calcChainFile,workbookRels, numFmtDefaultMap, cellImages} from "../common/constant";
 import { ReadXml,IStyleCollections,Element } from "./ReadXml";
 import {getXmlAttibute} from "../common/method";
-import { LuckyFileBase,LuckyFileInfo,LuckySheetBase,LuckySheetCelldataBase,LuckySheetCelldataValue,LuckySheetCellFormat, WorkBookInfo } from "./LuckyBase";
+import { LuckyFileBase,LuckyFileInfo,LuckySheetBase,LuckySheetCelldataBase, WorkBookInfo } from "./LuckyBase";
 import {ImageList} from "./LuckyImage";
 import { LuckyDefineNames } from "./LuckyDefineName";
 
@@ -18,6 +18,7 @@ export class LuckyFile extends LuckyFileBase {
     private sharedStrings:Element[]
     private calcChain:Element[]
     private imageList:ImageList
+    private cellImages: Element[]
 
     constructor(files:IuploadfileList, fileName:string) {
         super();
@@ -41,6 +42,7 @@ export class LuckyFile extends LuckyFileBase {
         this.styles['dxfs'] = this.readXml.getElementsByTagName("dxfs/dxf", stylesFile);
 
         this.imageList = new ImageList(files);
+        this.cellImages = this.readXml.getElementsByTagName('etc:cellImages/etc:cellImage', cellImages);
 
         let numfmts =  this.readXml.getElementsByTagName("numFmt/numFmt", stylesFile);
         let numFmtDefaultC = JSON.parse(JSON.stringify(numFmtDefault));
@@ -162,6 +164,7 @@ export class LuckyFile extends LuckyFileBase {
                         drawingFile:drawingFile,
                         drawingRelsFile: drawingRelsFile,
                         hide: hide,
+                        cellImages: this.cellImages
                     }
                 )
                 this.columnWidthSet = [];

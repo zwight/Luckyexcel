@@ -16,6 +16,7 @@ Support Univer import excel and export excel/csv adapter list
 - Conditional Formatting
 - Sort
 - Filter
+- Cell image, floating image
 
 ### Plan
 The goal is to support all features supported by Univer

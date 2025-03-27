@@ -3,6 +3,7 @@ import { convertSheetIdToName, heightConvert, hex2argb, wdithConvert } from "./u
 import { cellStyle, fontConvert } from "./CellStyle";
 import { jsonParse, removeEmptyAttr } from "../common/method";
 import { Resource } from "./Resource";
+
 export class ViewCommon implements WorksheetViewCommon{
     rightToLeft: boolean;
     activeCell: string;
@@ -60,7 +61,7 @@ export function ExcelWorkSheet(workbook: Workbook, snapshot: any) {
         })
         setColumns(worksheet, sheet.columnData, defaultColWidth);
         setRows(worksheet, sheet.rowData, defaultRowHeightR)
-        setCell(worksheet, sheet, styles, snapshot);
+        setCell(worksheet, sheet, styles, snapshot, workbook);
         setMerges(worksheet, mergeData);
         
         new Resource(id, workbook, worksheet, resources);
@@ -74,7 +75,7 @@ function setMerges(worksheet: Worksheet, mergeData: any[]) {
     })
 }
 
-function setCell(worksheet: Worksheet, sheet: any, styles: any, snapshot: any) {
+function setCell(worksheet: Worksheet, sheet: any, styles: any, snapshot: any, workbook: Workbook) {
     const { resources, sheets } = snapshot;
     const { cellData, id } = sheet;
     for (const rowid in cellData) {
@@ -91,7 +92,7 @@ function setCell(worksheet: Worksheet, sheet: any, styles: any, snapshot: any) {
                 rowId: rowid,
                 columnId: columnid,
                 sheets
-            } );
+            }, workbook );
             
             let originStyle = cell.s;
             if (typeof cell.s === 'string') {
@@ -111,25 +112,8 @@ function getHyperLink(cellSource: any) {
     return hyperlink
 }
 
-function handleValue(cell: any, cellSource: any) {
-    const { sheets } = cellSource
-    const hyperlink = getHyperLink(cellSource)
-    let value;
-    if (cell.p) {
-        const body = cell.p?.body;
-        value = {
-            richText: body?.textRuns.map((d: any) => {
-                return {
-                    text: body.dataStream.substring(d.st, d.ed),
-                    font: fontConvert(d.ts)
-                }
-            })
-        }
-    } else if (cell.si) {
-        value = { formula: cell.si, result: cell.v }
-    } else {
-        value = cell.v
-    }
+function handleHyperLink(hyperlink: any, sheets: any) {
+    let hyperlinks;
     if (hyperlink) {
         const { payload } = hyperlink;
         let link = '';
@@ -149,11 +133,55 @@ function handleValue(cell: any, cellSource: any) {
             link = payload
             model = 'External'
         }
-        const text = value?.richText?.map?.((d: any) => d.text)?.join('') || value?.result || value;
-        if (link) value = {
-            text: text,
+        
+        if (link) hyperlinks = {
             hyperlink: link,
             hyperlinkModel: model
+        } 
+    }
+    return hyperlinks
+}
+
+function handleValue(cell: any, cellSource: any, workbook: Workbook) {
+    const { sheets } = cellSource
+    const hyperlink = getHyperLink(cellSource)
+    const hyperlinks = handleHyperLink(hyperlink, sheets)
+    let value;
+    if (cell.p) {
+        const body = cell.p?.body;
+        if (cell.p.drawingsOrder?.length) {
+            const image = cell.p.drawings[cell.p.drawingsOrder[0]];
+            const { id, value: imgId } = workbook.addCellImage({
+                base64: image.source,
+                extension: 'png',
+                descr: image.description,
+                ext: {
+                    width: image.transform.width,
+                    height: image.transform.height,
+                }
+            })
+            value = { id, cellImageId: imgId, ...(hyperlinks || {}) }
+            return value
+        } else {
+            value = {
+                richText: body?.textRuns.map((d: any) => {
+                    return {
+                        text: body.dataStream.substring(d.st, d.ed),
+                        font: fontConvert(d.ts)
+                    }
+                })
+            }
+        }
+    } else if (cell.si) {
+        value = { formula: cell.si, result: cell.v }
+    } else {
+        value = cell.v
+    }
+    if (hyperlinks) {
+        const text = value?.richText?.map?.((d: any) => d.text)?.join('') || value?.result || value;
+        value = {
+            text: text,
+            ...hyperlinks
         }
     }
     return value

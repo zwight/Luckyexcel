@@ -26,6 +26,7 @@ node_modules/
 
 dist/luckysheet/
 dist/*.map
+dist/index.html
 assets/luckysheet/
 src
 deploy.bat

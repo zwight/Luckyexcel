@@ -13,7 +13,8 @@
         "skipLibCheck": true,
         "experimentalDecorators": true,
         "forceConsistentCasingInFileNames": false,
-        "allowSyntheticDefaultImports": true
+        "allowSyntheticDefaultImports": true,
+        "declaration": true
     },
     "include": [
         "src/**/*"

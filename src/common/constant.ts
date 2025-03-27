@@ -14,6 +14,8 @@ export const sharedStringsFile = "xl/sharedStrings.xml";
 export const worksheetFilePath = "xl/worksheets/";
 export const theme1File = "xl/theme/theme1.xml";
 export const workbookRels= "xl/_rels/workbook.xml.rels";
+export const cellImages = 'xl/cellimages.xml';
+export const cellImagesRels = 'xl/_rels/cellimages.xml.rels';
 
 
 

@@ -98,6 +98,7 @@ export class LuckySheetCelldataValue implements IluckySheetCelldataValue{
 
 export class LuckySheetCellFormat implements ILuckySheetCellFormat {
     s: Array<IluckySheetCelldataValue | ILuckyInlineString>;
+    ci: any
     fa:string
     t:string
 }

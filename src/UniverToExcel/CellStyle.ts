@@ -6,7 +6,7 @@ export function cellStyle(style: any = {}, numFmt: any, isCondition = false): St
         numFmt: numFmt,
         font: fontConvert(style),
         alignment: alignmentConvert(style),
-        protection: {},
+        protection: null,
         border: borderConvert(style.bd),
         fill: fillConvert(style.bg?.rgb, isCondition)
     }

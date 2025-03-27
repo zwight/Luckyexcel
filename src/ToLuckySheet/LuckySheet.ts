@@ -22,6 +22,7 @@ export class LuckySheet extends LuckySheetBase {
     private mergeCells:Element[]
     private calcChainEles:Element[]
     private sheetList:IattributeList
+    private cellImages: Element[]
 
     private imageList:ImageList
 
@@ -40,6 +41,7 @@ export class LuckySheet extends LuckySheetBase {
         this.sheetList = allFileOption.sheetList;
         this.imageList = allFileOption.imageList;
         this.hide = allFileOption.hide;
+        this.cellImages = allFileOption.cellImages;
 
         //Output
         this.name = sheetName;
@@ -214,7 +216,7 @@ export class LuckySheet extends LuckySheetBase {
             this.conditionalFormatting = ruleList.map((d: any ) => new LuckyCondition(d, this.readXml, this.styles));
             // console.log(ruleList, allFileOption, this.conditionalFormatting)
         }
-        console.log(allFileOption)
+        // console.log(allFileOption)
         const filter = new LuckFilter(this.readXml, this.sheetFile)
         if (filter.ref) this.filter = filter;
       
@@ -496,7 +498,18 @@ export class LuckySheet extends LuckySheetBase {
                 let cells = row.getInnerElements("c");
                 for(let key in cells){
                     let cell = cells[key];
-                    let cellValue = new LuckySheetCelldata(cell, this.styles, this.sharedStrings, this.mergeCells,this.sheetFile, this.readXml);
+                    const cellSize = this.getCellSize(cell);
+                    let cellValue = new LuckySheetCelldata(
+                        cell, 
+                        cellSize,
+                        this.styles, 
+                        this.sharedStrings, 
+                        this.mergeCells,
+                        this.sheetFile, 
+                        this.cellImages, 
+                        this.imageList, 
+                        this.readXml
+                    );
                     if(cellValue._borderObject!=null){
                         if(this.config.borderInfo==null){
                             this.config.borderInfo = [];
@@ -822,4 +835,19 @@ export class LuckySheet extends LuckySheetBase {
 
     //     return ret;
     // }
+    private getCellSize = (cell: Element) => {
+        let attrList = cell.attributeList;
+        let r = attrList.r, s = attrList.s, t = attrList.t;
+        let range = getcellrange(r);
+
+        const row = range.row[0];
+        const col = range.column[0];
+
+        const width = this.config.columnlen[col] || this.defaultColWidth;
+        const height = this.config.rowlen[row] || this.defaultRowHeight;
+        return {
+            width,
+            height
+        }
+    }
 }

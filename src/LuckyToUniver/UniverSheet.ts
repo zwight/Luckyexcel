@@ -9,11 +9,14 @@ import {
     CellValueType,
     Nullable,
     IDocumentData,
+    PositionedObjectLayoutType,
+    DrawingTypeEnum,
 } from '@univerjs/core';
 import { UniverSheetBase } from './UniverSheetBase';
 import { handleStyle, removeEmptyAttr } from './utils';
 import { str2num, generateRandomId } from '../common/method';
 import { IluckySheet, IluckySheetConfig, IluckySheetCelldata, IluckysheetHyperlink, IluckysheetFrozen, IluckySheetCelldataValue } from '../ToLuckySheet/ILuck';
+import { ImageSourceType } from './ILuckInterface';
 
 export interface HyperLink {
     id: string;
@@ -134,12 +137,19 @@ export class UniverSheet extends UniverSheetBase {
                 f,
                 // p: , // The unique key, a random string, is used for the plug-in to associate the cell. When the cell information changes, the plug-in does not need to change the data, reducing the pressure on the back-end interface id?: string.
                 s: handleStyle(row, borderConf),
-                si: f, // Id of the formula.
+                // si: f, // Id of the formula.
                 t: cellType,
                 v: val,
             };
             const pVal = this.handleDocument(row, config);
             if (pVal) cell.p = pVal;
+
+            const pValImg = this.handleCellImage(row,config);
+            if (pValImg) {
+                cell.p = pValImg;
+                cell.f = undefined;
+                cell.v = undefined;
+            }
             return removeEmptyAttr(cell);
         };
         let row: number | undefined = undefined;
@@ -186,8 +196,8 @@ export class UniverSheet extends UniverSheetBase {
             return indices;
         };
         const removeLastChar = (str: string, charToRemove: string) => {
-            const regex = new RegExp(`${charToRemove}$`);
-            return str.replace(regex, '');
+            const regex = new RegExp(`${charToRemove}`, 'g');
+            return str.replace(regex, '\r');
         };
         let pVlaue: Nullable<IDocumentData> = null;
         const { v } = row;
@@ -195,8 +205,14 @@ export class UniverSheet extends UniverSheetBase {
             return undefined;
         }
         if (v.ct && v.ct.t === 'inlineStr') {
+
+            v.ct.s = v.ct.s.map(d => {
+                d.v = removeLastChar(d.v || '', '\r\n');
+                return d
+            })
+
             let dataStream = v.ct.s.reduce((prev, cur) => {
-                return prev + removeLastChar(cur.v || '', '\r\n');
+                return prev + cur.v;
             }, '');
             dataStream = dataStream?.replace(/\n/g, '\r') + '\r\n';
             const matchChart = {
@@ -266,6 +282,84 @@ export class UniverSheet extends UniverSheetBase {
         }
         return pVlaue;
     };
+
+    private handleCellImage = (row: IluckySheetCelldata, config: IluckySheetConfig) => {
+        let pVlaue: Nullable<any> = null;
+        const { v } = row;
+        if (typeof v === 'string' || v === null || v === undefined) {
+            return undefined;
+        }
+        if (v.ct && v.ct.t === 'str' && v.ct.ci) {
+            const blockId = generateRandomId(6);
+            const valueId = generateRandomId(6);
+            const { default: defaultData,  src, descr } = v.ct.ci || {};
+            const borderConf = config.borderInfo?.find(
+                (d) => d.value.col_index === row.c && d.value.row_index === row.r
+            );
+            pVlaue = {
+                id: valueId,
+                documentStyle: {
+                    documentFlavor: 0,
+                    pageSize: { width: 0, height: 0 },
+                    renderConfig: {},
+                    textStyle: {},
+                },
+                body: {
+                    dataStream: '\b\r\n',
+                    paragraphs: [{
+                        startIndex: 1,
+                        paragraphStyle: { horizontalAlign: v.ht }
+                    }],
+                    sectionBreaks: [{ startIndex: 2 }],
+                    textRuns: [{
+                        ed: 1,
+                        st: 0,
+                        ts: handleStyle(
+                            {
+                                v: v,
+                                r: row.r,
+                                c: row.c,
+                            },
+                            borderConf,
+                            true
+                        ),
+                    }],
+                    customBlocks: [{ startIndex: 0, blockId }]
+                },
+                drawings: {
+                    [blockId]: {
+                        unitId: valueId,
+                        subUnitId: valueId,
+                        drawingId: blockId,
+                        layoutType: PositionedObjectLayoutType.INLINE,
+                        title: '',
+                        description: descr,
+                        docTransform: {
+                            size: {
+                                width: defaultData.width,
+                                height: defaultData.height
+                            },
+                            positionH: {
+                                relativeFrom: 0,
+                                posOffset: 0
+                            },
+                            positionV: {
+                                relativeFrom: 1,
+                                posOffset: 0
+                            },
+                            angle: 0
+                        },
+                        drawingType: DrawingTypeEnum.DRAWING_IMAGE,
+                        imageSourceType: ImageSourceType.BASE64,
+                        source: src,
+                        transform: defaultData
+                    }
+                },
+                drawingsOrder: [blockId]
+            };
+        }
+        return pVlaue;
+    }
 
     private handleRowAndColumnData = (config: IluckySheetConfig) => {
         const columnData: IObjectArrayPrimitiveType<Partial<IColumnData>> = {};
