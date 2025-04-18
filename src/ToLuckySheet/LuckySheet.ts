@@ -843,8 +843,8 @@ export class LuckySheet extends LuckySheetBase {
         const row = range.row[0];
         const col = range.column[0];
 
-        const width = this.config.columnlen[col] || this.defaultColWidth;
-        const height = this.config.rowlen[row] || this.defaultRowHeight;
+        const width = this.config.columnlen && this.config.columnlen[col] ? this.config.columnlen[col] : this.defaultColWidth;
+        const height = this.config.rowlen && this.config.rowlen[row]? this.config.rowlen[row] : this.defaultRowHeight;
         return {
             width,
             height

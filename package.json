@@ -1,6 +1,6 @@
 {
   "name": "@zwight/luckyexcel",
-  "version": "1.1.2",
+  "version": "1.1.3",
   "description": "An excel import and export library adapted to Luckysheet",
   "main": "dist/luckyexcel.cjs.js",
   "module": "dist/luckyexcel.esm.js",
