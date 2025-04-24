@@ -513,6 +513,10 @@ export class LuckyFile extends LuckyFileBase {
             if(sheet.images!=null){
                 sheetout.images = sheet.images;
             }
+
+            if(sheet.charts!=null){
+                sheetout.charts = sheet.charts;
+            }
           
             if (sheet.dataVerification != null){
               sheetout.dataVerification = sheet.dataVerification;

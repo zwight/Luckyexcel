@@ -1,4 +1,5 @@
-import { ILuckyFile, ILuckyFileInfo,IluckySheet,IluckySheetCelldata,IluckySheetConfig,IluckySheetCelldataValue,IluckySheetCelldataValueMerge,ILuckySheetCellFormat,IluckySheetConfigMerges,IluckySheetConfigMerge,IMapluckySheetborderInfoCellForImp,IluckySheetborderInfoCellValue,IluckySheetborderInfoCellValueStyle,IluckySheetborderInfoCellForImp,IluckySheetRowAndColumnLen,IluckySheetRowAndColumnHidden,IluckySheetSelection,IluckysheetFrozen,IluckySheetChart,IluckySheetPivotTable,IluckysheetConditionFormat,IluckysheetCalcChain,ILuckyInlineString,IluckyImage,IluckyImageBorder,IluckyImageCrop,IluckyImageDefault,IluckyImages, IluckysheetHyperlink, IluckysheetDataVerification, IWorkBookInfo} from "./ILuck";
+import { ChartTypeBits } from "../common/constant";
+import { ILuckyFile, ILuckyFileInfo,IluckySheet,IluckySheetCelldata,IluckySheetConfig,IluckySheetCelldataValue,IluckySheetCelldataValueMerge,ILuckySheetCellFormat,IluckySheetConfigMerges,IluckySheetConfigMerge,IluckySheetborderInfoCellValue,IluckySheetborderInfoCellValueStyle,IluckySheetborderInfoCellForImp,IluckySheetRowAndColumnLen,IluckySheetRowAndColumnHidden,IluckySheetSelection,IluckysheetFrozen,IluckySheetChart,IluckySheetPivotTable,IluckysheetConditionFormat,IluckysheetCalcChain,ILuckyInlineString,IluckyImage,IluckyImageBorder,IluckyImageCrop,IluckyImageDefault,IluckyImages, IluckysheetHyperlink, IluckysheetDataVerification, IWorkBookInfo, IluckyCharts, IluckyChart, ILuckyChartContext, ILuckyChartStyle, IluckyChartImage, IluckyChartImageData} from "./ILuck";
 import type { LuckyConditionFormat } from './LuckyCondition'
 import { IDefinedNames } from "./LuckyDefineName";
 import { LuckyFilterFormat } from "./luckyFilter";
@@ -45,6 +46,7 @@ export class LuckySheetBase implements IluckySheet{
     calcChain:IluckysheetCalcChain[]
 
     images:IluckyImages
+    charts: IluckyChart[]
     
     dataVerification: IluckysheetDataVerification;
     hyperlink: IluckysheetHyperlink
@@ -176,4 +178,28 @@ export class LuckyImageBase implements IluckyImage{
     originWidth: number
     src: string
     type: string
+}
+
+export class LuckyChartImageBase implements IluckyChartImage{
+    border: IluckyImageBorder
+    crop: IluckyImageCrop
+    default: IluckyImageDefault
+    transform: IluckyImageDefault
+
+    fixedLeft: number
+    fixedTop: number
+    isFixedPos: Boolean
+    originHeight: number
+    originWidth: number
+    data: IluckyChartImageData
+    type: string
+}
+
+export class LuckyChart implements IluckyChart {
+    id: string;
+    range: string;
+    chartType: ChartTypeBits;
+    context: ILuckyChartContext;
+    style: ILuckyChartStyle;
+    isRowDirection: boolean;
 }

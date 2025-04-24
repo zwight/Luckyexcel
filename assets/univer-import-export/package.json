@@ -1,0 +1,43 @@
+{
+  "name": "vite-vue-starter",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@univerjs-pro/license": "0.6.0",
+    "@univerjs-pro/sheets-chart": "0.6.0",
+    "@univerjs-pro/sheets-chart-ui": "0.6.0",
+    "@univerjs-pro/sheets-print": "0.6.0",
+    "@univerjs/core": "0.6.0",
+    "@univerjs/design": "0.6.0",
+    "@univerjs/docs": "0.6.0",
+    "@univerjs/docs-drawing": "0.6.0",
+    "@univerjs/docs-ui": "0.6.0",
+    "@univerjs/drawing": "0.6.0",
+    "@univerjs/drawing-ui": "0.6.0",
+    "@univerjs/engine-formula": "0.6.0",
+    "@univerjs/engine-render": "0.6.0",
+    "@univerjs/sheets": "0.6.0",
+    "@univerjs/sheets-drawing": "0.6.0",
+    "@univerjs/sheets-drawing-ui": "0.6.0",
+    "@univerjs/sheets-formula": "0.6.0",
+    "@univerjs/sheets-formula-ui": "0.6.0",
+    "@univerjs/sheets-numfmt": "0.6.0",
+    "@univerjs/sheets-numfmt-ui": "0.6.0",
+    "@univerjs/sheets-ui": "0.6.0",
+    "@univerjs/ui": "0.6.0",
+    "@univerjs/vite-plugin": "^0.5.1",
+    "@zwight/luckyexcel": "file:../../dist/",
+    "vue": "^3.5.13"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.2.1",
+    "less": "^4.2.1",
+    "vite": "^6.0.3"
+  }
+}

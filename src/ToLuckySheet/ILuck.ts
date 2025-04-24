@@ -1,3 +1,4 @@
+import { ChartTypeBits } from "../common/constant";
 import { LuckyConditionFormat } from "./LuckyCondition";
 import { IDefinedNames } from "./LuckyDefineName";
 import { LuckyFilterFormat } from "./luckyFilter";
@@ -57,6 +58,7 @@ export interface IluckySheet{
     defaultRowHeight:number, //row height pixel
 
     images:IluckyImages,//image list
+    charts: IluckyChart[],//chart list
     
     dataVerification: IluckysheetDataVerification;
 		hyperlink: IluckysheetHyperlink, // hyperlinks
@@ -71,7 +73,6 @@ export interface IluckySheet{
 export interface IluckySheetSelection{
     row:number[], //selection start row and end row
     column:number[], //selection start column and end column
-    sheetIndex:number
 }
 
 export interface IluckySheetChart{
@@ -364,7 +365,127 @@ export interface IformulaListItem{
     r:number,
     c:number
 }
+// chart
+export interface IluckyChartImage {
+    border: IluckyImageBorder
+    crop: IluckyImageCrop
+    default: IluckyImageDefault
 
+    fixedLeft: number
+    fixedTop: number
+    isFixedPos: Boolean
+    originHeight: number
+    originWidth: number
+    data: IluckyChartImageData
+    type: string
+    [key: string]: any;
+}
+export interface IluckyChartImageData {
+    border: string,
+    background: string,
+    range: string,
+    chartType: ChartTypeBits,
+    isRowDirection: boolean
+}
+export interface IluckyCharts {
+    [index:string]:IluckyChart
+}
+export interface IluckyChart {
+    id: string,
+    range: string,
+    chartType: ChartTypeBits,
+    context: ILuckyChartContext,
+    style: ILuckyChartStyle,
+    isRowDirection: boolean,
+}
+export interface ILuckyChartContext {
+    categoryIndex: number;
+    seriesIndexes: number[];
+}
+export interface ILuckyChartStyle {
+    titles: ILuckyChartStyleTitles;
+    runtime: any;
+    width: number;
+    height: number;
+    backgroundColor?: string;
+    borderColor?: string;
+    xAxis?: ILuckyChartStyleAxis;
+    yAxis?: ILuckyChartStyleAxis;
+    allSeriesStyle?: ILuckyChartStyleSeries;
+    seriesStyleMap?: ILuckyChartStyleSerieStyles;
+    legend?: ILuckyChartStyleLegend;
+    gradientFill?: boolean
+}
+
+export interface ILuckyChartStyleTitles {
+    titlePosition?: 'top' | 'bottom' | 'left' | 'right' | 'hide';
+    [key: string]: ILuckyChartStyleTitle | string,
+}
+
+export interface ILuckyChartStyleTitle extends ILuckyChartStyleBase {
+    content: string;
+}
+export interface ILuckyChartStyleBase {
+    color?: string;
+    fontSize?: number;
+    bold?: boolean;
+    italic?: boolean;
+}
+
+export interface ILuckyChartStyleAxis {
+    label: ILuckyChartStyleAxisLabel;
+    reverse: boolean;
+    lineVisible: boolean;
+    gridLine: {
+        visible: boolean;
+        width: number;
+        color: string;
+    },
+    tick: {
+        visible: boolean;
+        position: 'inside' | 'outside',
+        length?: number;
+        lineWidth?: number;
+    },
+    min: number;
+    max: number;
+}
+
+export interface ILuckyChartStyleAxisLabel extends ILuckyChartStyleBase {
+    axisTitleAlign: 'start' | 'center' | 'end';
+    rotate: number;
+}
+
+export interface ILuckyChartStyleSeries {
+    border?: ILuckyChartStyleBorder;
+    label?: {
+        visible?: boolean;
+    }
+    fillOpacity?: number;
+}
+export interface ILuckyChartStyleBorder {
+    dashType: 'solid' | 'dotted' | 'dashed';
+    width: number;
+    opacity: number;
+    color: string;
+}
+export interface ILuckyChartStyleSerieStyles {
+    [key: string]: ILuckyChartStyleSerieStyle
+}
+export interface ILuckyChartStyleSerieStyle {
+    border?: ILuckyChartStyleBorder;
+    rightYAxis?: boolean;
+    label: {
+        visible: boolean;
+        position: 'inside' | 'outside',
+        contentType: number
+    } & ILuckyChartStyleBase
+}
+export interface ILuckyChartStyleLegend {
+    position: 'top' | 'bottom' | 'left' | 'right' | 'hide';
+    selectMode?: 'single' | 'multiple' | 'close';
+    label?: ILuckyChartStyleBase;
+}
 
 // DataVerification
 export interface IluckysheetDataVerification {

@@ -31,7 +31,6 @@ export class Resource {
         return getRangetxt({
             row: [startRow, endRow],
             column: [startColumn, endColumn],
-            sheetIndex: 0
         }, '')
     }
     // private setRangeProtection() {

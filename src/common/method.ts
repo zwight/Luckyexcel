@@ -2,6 +2,7 @@ import { columeHeader_word, columeHeader_word_index } from "./constant";
 import { IluckySheetSelection } from "../ToLuckySheet/ILuck";
 import { IattributeList, stringToNum} from "../ICommon";
 import { customAlphabet, nanoid } from "nanoid";
+import { ReadXml } from "../ToLuckySheet/ReadXml";
 
 
 export function getRangetxt(range:IluckySheetSelection, sheettxt:string) {
@@ -26,27 +27,17 @@ export function getRangetxt(range:IluckySheetSelection, sheettxt:string) {
 }
 
 
-export function getcellrange (txt:string, sheets:IattributeList={}, sheetId:string="1") {
+export function getcellrange (txt:string) {
     let val = txt.split("!");
 
     let sheettxt = "",
-        rangetxt = "",
-        sheetIndex = -1;
+        rangetxt = ""
 
     if (val.length > 1) {
         sheettxt = val[0];
         rangetxt = val[1];
-        
-        let si = sheets[sheettxt];
-        if(si==null){
-            sheetIndex = parseInt(sheetId);
-        }
-        else{
-            sheetIndex = parseInt(si);
-        }
     } 
     else {
-        sheetIndex = parseInt(sheetId);
         rangetxt = val[0];
     }
     
@@ -58,7 +49,6 @@ export function getcellrange (txt:string, sheets:IattributeList={}, sheetId:stri
             return {
                 "row": [row, row],
                 "column": [col, col],
-                "sheetIndex": sheetIndex
             };
         }
         else {
@@ -94,7 +84,6 @@ export function getcellrange (txt:string, sheets:IattributeList={}, sheetId:stri
         return {
             "row": row,
             "column": col,
-            "sheetIndex": sheetIndex
         };
     }
 }
@@ -304,7 +293,7 @@ function hexToRgb(hex:string){
     return sColor;
 }
 
-function hexToRgbArray(hex:string){
+export function hexToRgbArray(hex:string){
     var sColor = hex.toLowerCase();
     //十六进制颜色值的正则表达式
     var reg = /^#([0-9a-fA-f]{3}|[0-9a-fA-f]{6})$/;
@@ -1301,4 +1290,33 @@ export function isEmpty(value: any) {
         return true;
     }
     return false
+}
+
+export function getRelationShip(params: {
+    rid:string, 
+    fileName:string, 
+    callback?: (src: string) => any,
+    readXml: ReadXml
+}){
+    const { rid, fileName, callback, readXml } = params;
+    let Relationships = readXml.getElementsByTagName("Relationships/Relationship", fileName);
+
+    if(Relationships!=null && Relationships.length>0){
+        for(let i=0;i<Relationships.length;i++){
+            let Relationship = Relationships[i];
+            let attrList = Relationship.attributeList;
+            let Id = getXmlAttibute(attrList, "Id", null);
+            let src = getXmlAttibute(attrList, "Target", null);
+            if(Id == rid){
+                src = src.replace(/\.\.\//g, "");
+                if (callback) {
+                    return callback(src);
+                } else {
+                    return src;
+                }
+            }
+        }
+    }
+
+    return null;
 }

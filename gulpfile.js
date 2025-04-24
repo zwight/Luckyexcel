@@ -41,7 +41,7 @@ const pkg = require('./package.json');
 
 
 const paths = {
-    pages: ['src/*.html',"assets/**"]
+    pages: ['src/*.html']
 };
 
 // babel config
@@ -143,13 +143,21 @@ async function compile() {
         inlineDynamicImports:true,
         // sourcemap: true
     })
-    // bundle.write({
-    //     file: pkg.browser,
-    //     format: 'umd',
-    //     name: 'LuckyExcel',
-    //     inlineDynamicImports:true,
-    //     // sourcemap: true
-    // })
+    bundle.write({
+        file: pkg.browser,
+        format: 'umd',
+        name: 'LuckyExcel',
+        inlineDynamicImports:true,
+        globals: {
+            nanoid: 'nanoid',
+            dayjs: 'dayjs',
+            '@univerjs/core': 'core',
+            '@progress/jszip-esm': 'JSZip',
+            '@zwight/exceljs': 'exceljs',
+            papaparse: 'Papa'
+        }
+        // sourcemap: true
+    })
 }
 
 // 生产模式，打包成UMD模块
@@ -164,7 +172,7 @@ function bundleUMD() {
     .plugin(tsify)
     .transform('babelify', {
         presets: ['@babel/preset-env','@babel/preset-typescript'],
-        extensions: ['.ts']
+        extensions: ['.ts', '.js'],
     })
     .bundle()
     .pipe(source('luckyexcel.umd.js'))
@@ -194,7 +202,7 @@ function serve() {
 // 顺序执行
 const dev = series(clean, copyHtml, bundle, watcher, serve);
 
-const build = series(clean, parallel(copyHtml, compile, bundleUMD));
+const build = series(clean, parallel(copyHtml, compile));
 
 // 每次TypeScript文件改变时Browserify会执行bundle函数
 watchedBrowserify.on("update", series(bundle, reload));

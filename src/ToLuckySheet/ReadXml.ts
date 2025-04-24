@@ -33,6 +33,28 @@ class xmloperation {
             return ret;
         }
     }
+
+    protected getElementByTagLink(tag:string, file:string): string[]{
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(file, "text/xml");
+
+        let tagVal: globalThis.Element[] = Array.from(xmlDoc.children);
+        if(tag.indexOf("/")>-1){
+            let tags = tag.split("/");
+            for (let index = 0; index < tags.length; index++) {
+                const element = tags[index];
+                const i = tagVal.findIndex(d => Array.from(d.children).findIndex(d => d.tagName === element) > -1);
+                if (i === -1 && index <= tags.length - 1) {
+                    return [];
+                }
+                tagVal = Array.from(tagVal[i].children).filter(d => d.tagName === element)
+            }
+        } else {
+            tagVal = Array.from(tagVal[0].children).filter(d => d.tagName === tag)
+        }
+        const serializer = new XMLSerializer();
+        return tagVal.map(d => serializer.serializeToString(d));
+    }
 }
 
 export class ReadXml extends xmloperation{
@@ -71,6 +93,20 @@ export class ReadXml extends xmloperation{
             }
         }
 
+        let elements:Element[] = [];
+
+        for(let i=0;i<ret.length;i++){
+            let ele = new Element(ret[i]);
+            elements.push(ele);
+        }
+
+        return elements;
+    }
+
+    getElementsByTagNameLink(path:string, fileName:string, isFile: boolean = true): Element[]{
+        let file = this.getFileByName(fileName);
+        if (!isFile) file = fileName;
+        const ret = this.getElementByTagLink(path, file);
         let elements:Element[] = [];
 
         for(let i=0;i<ret.length;i++){
@@ -150,6 +186,21 @@ export class Element extends xmloperation {
         if(elements.length==0){
             return null;
         }
+        return elements;
+    }
+
+    getInnerElementsTagLink(tag: string): Element[]{
+        const ret = this.getElementByTagLink(tag, this.elementString);
+        let elements:Element[] = [];
+
+        for(let i=0;i<ret.length;i++){
+            let ele = new Element(ret[i]);
+            elements.push(ele);
+        }
+        if(elements.length==0){
+            return null;
+        }
+
         return elements;
     }
 

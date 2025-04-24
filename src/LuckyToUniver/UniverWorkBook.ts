@@ -14,6 +14,7 @@ import { handleStyle } from './utils';
 import { generateRandomId } from '../common/method';
 import { IluckySheet, ILuckyFile, IWorkBookInfo } from '../ToLuckySheet/ILuck';
 import { ImageSourceType } from './ILuckInterface';
+import { handleRanges } from '../ToLuckySheet/style';
 
 interface Sheets {
     [sheetId: string]: Partial<IWorksheetData & { hyperLink: HyperLink[] }>;
@@ -49,8 +50,11 @@ export class UniverWorkBook implements IWorkbookData {
                 sheetsObj[sheet.id] = d;
                 order.push(sheet.id);
             });
+
+        // console.log(workSheets,sheets)
         this.handleHyperLinks(workSheets);
         this.handleImage(workSheets, sheets);
+        this.handleChart(workSheets, sheets);
         this.handleNames(workbook);
         this.handleCondition(sheetsObj);
         this.handleVerification(sheetsObj);
@@ -117,11 +121,16 @@ export class UniverWorkBook implements IWorkbookData {
             const data: { [key: string]: any } = {};
             order.forEach((key) => {
                 const image = images[key];
-                data[key] = {
+                if (sheet.columnCount < image.toCol) {
+                    sheet.columnCount = image.toCol + 1;
+                }
+                if (sheet.rowCount < image.toRow) {
+                    sheet.rowCount = image.toRow + 1;
+                }
+                let imageObj: any = {
                     unitId: this.id,
                     subUnitId: sheet.id || '',
                     drawingId: key,
-                    drawingType: DrawingTypeEnum.DRAWING_IMAGE,
                     transform: {
                         width: 0,
                         height: 0,
@@ -134,10 +143,8 @@ export class UniverWorkBook implements IWorkbookData {
                         skewY: 0,
                         flipX: false,
                         flipY: false,
+                        ...(image.transform || {}),
                     },
-                    imageSourceType: ImageSourceType.BASE64,
-                    source: image.src,
-                    prstGeom: 'rect' as Nullable<PresetGeometryType>,
                     sheetTransform: {
                         angle: 0,
                         skewX: 0,
@@ -157,8 +164,30 @@ export class UniverWorkBook implements IWorkbookData {
                             rowOffset: image.toRowOff,
                         },
                     },
-                    anchorType: '1',
-                };
+                }
+                if (image.type === 'chart') {
+                    imageObj = {
+                        ...imageObj,
+                        drawingType: DrawingTypeEnum.DRAWING_CHART,
+                        componentKey: 'Chart',
+                        data: {
+                            ...(image.data || {}),
+                            range: `${sheet.name}!${image.data.range}`
+                        },
+                        allowTransform: true
+                    }
+                } else {
+                    imageObj = {
+                        ...imageObj,
+                        drawingType: DrawingTypeEnum.DRAWING_IMAGE,
+                        imageSourceType: ImageSourceType.BASE64,
+                        source: image.src,
+                        prstGeom: 'rect' as Nullable<PresetGeometryType>,
+                        anchorType: '1',
+                    }
+                }
+
+                data[key] = imageObj;
             });
             drawerList[sheet.id!] = {
                 data,
@@ -170,6 +199,41 @@ export class UniverWorkBook implements IWorkbookData {
             data: JSON.stringify(drawerList),
         });
     };
+
+    private handleChart = (workSheets: Sheets, sheets: IluckySheet[]) => {
+        const chartList: {
+            [key: string]: any
+        } = {};
+        Object.values(workSheets).forEach((sheet) => {
+            const charts = sheets.find((d) => d.name === sheet.name)?.charts;
+            if (!charts) return;
+            charts.forEach((chart) => {
+                if (!chartList[sheet.id!]) {
+                    chartList[sheet.id!] = []
+                }
+                chartList[sheet.id!].push({
+                    rangeInfo: {
+                        isRowDirection: chart.isRowDirection,
+                        rangeInfo: {
+                            unitId: this.id,
+                            subUnitId: sheet.id || '',
+                            range: handleRanges(chart.range)[0]
+                        }
+                    },
+                    id: chart.id,
+                    chartType: chart.chartType,
+                    context: chart.context,
+                    style: chart.style,
+                    dataAggregation: {}
+                })
+            });
+        })
+        // console.log('chartList', chartList)
+        this.resources?.push({
+            name: 'SHEET_CHART_PLUGIN',
+            data: JSON.stringify(chartList),
+        });
+    }
     private handleNames = (workbook: IWorkBookInfo) => {
         this.resources?.push({
             name: 'SHEET_DEFINED_NAME_PLUGIN',

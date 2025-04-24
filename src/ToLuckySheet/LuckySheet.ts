@@ -11,6 +11,7 @@ import { LuckyCondition } from "./LuckyCondition";
 import { LuckyVerification } from "./LuckyVerification";
 import { LuckFilter } from "./luckyFilter";
 import { LuckyFreezen } from './luckyFreezen'
+import { ChartImageGroup } from './LuckyChart'
 
 export class LuckySheet extends LuckySheetBase {
 
@@ -32,7 +33,6 @@ export class LuckySheet extends LuckySheetBase {
         //Private
         super();
         this.isInitialCell = isInitialCell;
-
         this.readXml = allFileOption.readXml;
         this.sheetFile = allFileOption.sheetFile;
         this.styles = allFileOption.styles;
@@ -63,7 +63,7 @@ export class LuckySheet extends LuckySheetBase {
             let selections = sheetView[0].getInnerElements("selection");
             if(selections!=null && selections.length>0){
                 activeCell = getXmlAttibute(selections[0].attributeList, "activeCell", "A1");
-                let range:IluckySheetSelection = getcellrange(activeCell, this.sheetList, sheetId);
+                let range:IluckySheetSelection = getcellrange(activeCell);
                 this.luckysheet_select_save = [];
                 this.luckysheet_select_save.push(range);
             }
@@ -238,7 +238,7 @@ export class LuckySheet extends LuckySheetBase {
                 if(ref==null){
                     continue;
                 }
-                let range = getcellrange(ref, this.sheetList, sheetId);
+                let range = getcellrange(ref);
                 let mergeValue = new LuckySheetConfigMerge();
                 mergeValue.r = range.row[0];
                 mergeValue.c = range.column[0];
@@ -253,118 +253,132 @@ export class LuckySheet extends LuckySheetBase {
 
         let drawingFile = allFileOption.drawingFile, drawingRelsFile = allFileOption.drawingRelsFile;
         if(drawingFile!=null && drawingRelsFile!=null){
-            let twoCellAnchors = this.readXml.getElementsByTagName("xdr:twoCellAnchor", drawingFile);
-            let oneCellAnchors = this.readXml.getElementsByTagName("xdr:oneCellAnchor", drawingFile);
-            twoCellAnchors=[...twoCellAnchors,...oneCellAnchors];
-            if(twoCellAnchors!=null && twoCellAnchors.length>0){
-                for(let i=0;i<twoCellAnchors.length;i++){
-                    let twoCellAnchor = twoCellAnchors[i];
-                    let editAs = getXmlAttibute(twoCellAnchor.attributeList, "editAs", "twoCell");
+            this.getImageBaseInfo(drawingFile, drawingRelsFile)
+        } 
+    }
 
-                    let xdrFroms = twoCellAnchor.getInnerElements("xdr:from"), xdrTos = twoCellAnchor.getInnerElements("xdr:to");
+    private getImageBaseInfo = (drawingFile: string, drawingRelsFile: string): any => {
+        let twoCellAnchors = this.readXml.getElementsByTagName("xdr:twoCellAnchor", drawingFile);
+        let oneCellAnchors = this.readXml.getElementsByTagName("xdr:oneCellAnchor", drawingFile);
+        twoCellAnchors=[...twoCellAnchors,...oneCellAnchors];
+        if(twoCellAnchors!=null && twoCellAnchors.length>0){
+            for(let i=0;i<twoCellAnchors.length;i++){
+                let twoCellAnchor = twoCellAnchors[i];
+                
+                let xdrFroms = twoCellAnchor.getInnerElements("xdr:from"), xdrTos = twoCellAnchor.getInnerElements("xdr:to");
 
-                    let xdr_blipfills = twoCellAnchor.getInnerElements("a:blip");
-                    if(xdrFroms!=null && xdr_blipfills!=null && xdrFroms.length>0 && xdr_blipfills.length>0){
-                        let xdrFrom = xdrFroms[0], xdrTo, xdrExt,xdr_blipfill = xdr_blipfills[0];
-                        if(xdrTos){
-                            xdrTo = xdrTos[0];
-                        }else{
-                            xdrExt = twoCellAnchor.getInnerElements("xdr:ext")[0]
-                        }
-                        let rembed = getXmlAttibute(xdr_blipfill.attributeList, "r:embed", null);
-
-                        let imageObject: any = this.getBase64ByRid(rembed, drawingRelsFile);
-
-
-
-                        // let aoff = xdr_xfrm.getInnerElements("a:off"), aext = xdr_xfrm.getInnerElements("a:ext");
-
-                        
-
-                        // if(aoff!=null && aext!=null && aoff.length>0 && aext.length>0){
-                        //     let aoffAttribute = aoff[0].attributeList, aextAttribute = aext[0].attributeList;
-                        //     let x = getXmlAttibute(aoffAttribute, "x", null);
-                        //     let y = getXmlAttibute(aoffAttribute, "y", null);
-
-                        //     let cx = getXmlAttibute(aextAttribute, "cx", null);
-                        //     let cy = getXmlAttibute(aextAttribute, "cy", null);
-
-                        //     if(x!=null && y!=null && cx!=null && cy!=null && imageObject !=null){
-                        // let x_n = getPxByEMUs(parseInt(x), "c"),y_n = getPxByEMUs(parseInt(y));
-                        // let cx_n = getPxByEMUs(parseInt(cx), "c"),cy_n = getPxByEMUs(parseInt(cy));
-
-                        let x_n =0,y_n = 0;
-                        let cx_n = 0, cy_n = 0;
-
-                        imageObject.fromCol = this.getXdrValue(xdrFrom.getInnerElements("xdr:col"));
-                        imageObject.fromColOff = getPxByEMUs(this.getXdrValue(xdrFrom.getInnerElements("xdr:colOff")));
-                        imageObject.fromRow= this.getXdrValue(xdrFrom.getInnerElements("xdr:row"));
-                        imageObject.fromRowOff = getPxByEMUs(this.getXdrValue(xdrFrom.getInnerElements("xdr:rowOff")));
-                        if(xdrTo){
-                            imageObject.toCol = this.getXdrValue(xdrTo.getInnerElements("xdr:col"));
-                            imageObject.toColOff = getPxByEMUs(this.getXdrValue(xdrTo.getInnerElements("xdr:colOff")));
-                            imageObject.toRow = this.getXdrValue(xdrTo.getInnerElements("xdr:row"));
-                            imageObject.toRowOff = getPxByEMUs(this.getXdrValue(xdrTo.getInnerElements("xdr:rowOff")));
-                        }else{
-                            let a = xdrExt.attributeList
-                            cx_n = getPxByEMUs(parseInt(a.cx)),cy_n = getPxByEMUs(parseInt(a.cy));
-                            imageObject.toCol = imageObject.fromCol;
-                            imageObject.toColOff = Number(imageObject.fromColOff)+cx_n;
-                            imageObject.toRow = imageObject.fromRow;
-                            imageObject.toRowOff = Number(imageObject.fromRowOff)+cy_n;
-                        }
-                        imageObject.originWidth = cx_n;
-                        imageObject.originHeight = cy_n;
-                        
-                        if(editAs=="absolute"){
-                            imageObject.type = "3";
-                        }
-                        else if(editAs=="oneCell"){
-                            imageObject.type = "2";
-                        }
-                        else{
-                            imageObject.type = "1";
-                        }
-
-                        imageObject.isFixedPos = false;
-                        imageObject.fixedLeft = 0;
-                        imageObject.fixedTop = 0;
-
-                        let imageBorder:IluckyImageBorder = {
-                            color: "#000",
-                            radius: 0,
-                            style: "solid",
-                            width: 0
-                        }
-                        imageObject.border = imageBorder;
-
-                        let imageCrop:IluckyImageCrop = {
-                            height: cy_n,
-                            offsetLeft: 0,
-                            offsetTop: 0,
-                            width: cx_n
-                        }
-                        imageObject.crop = imageCrop;
-
-                        let imageDefault:IluckyImageDefault = {
-                            height: cy_n,
-                            left: x_n,
-                            top: y_n,
-                            width: cx_n
-                        }
-                        imageObject.default = imageDefault;
-
-                        if(this.images==null){
-                            this.images = {};
-                        }
-                        this.images[generateRandomIndex("image")] = imageObject;
-                        //     }
-                        // }
+                if(xdrFroms!=null && xdrFroms.length>0){
+                    let xdrFrom = xdrFroms[0], xdrTo, xdrExt;
+                    if(xdrTos){
+                        xdrTo = xdrTos[0];
+                    }else{
+                        xdrExt = twoCellAnchor.getInnerElements("xdr:ext")[0]
                     }
+                    
+                    let xdr_graphicFrame = twoCellAnchor.getInnerElements("xdr:graphicFrame");
+                    let imageObject = xdr_graphicFrame ? this.getGraphic(twoCellAnchor, drawingRelsFile) : this.getImage(twoCellAnchor, drawingRelsFile)
+
+                    let x_n =0,y_n = 0;
+                    let cx_n = 0, cy_n = 0;
+
+                    imageObject.fromCol = this.getXdrValue(xdrFrom.getInnerElements("xdr:col"));
+                    imageObject.fromColOff = getPxByEMUs(this.getXdrValue(xdrFrom.getInnerElements("xdr:colOff")));
+                    imageObject.fromRow= this.getXdrValue(xdrFrom.getInnerElements("xdr:row"));
+                    imageObject.fromRowOff = getPxByEMUs(this.getXdrValue(xdrFrom.getInnerElements("xdr:rowOff")));
+                    if(xdrTo){
+                        imageObject.toCol = this.getXdrValue(xdrTo.getInnerElements("xdr:col"));
+                        imageObject.toColOff = getPxByEMUs(this.getXdrValue(xdrTo.getInnerElements("xdr:colOff")));
+                        imageObject.toRow = this.getXdrValue(xdrTo.getInnerElements("xdr:row"));
+                        imageObject.toRowOff = getPxByEMUs(this.getXdrValue(xdrTo.getInnerElements("xdr:rowOff")));
+                    }else{
+                        let a = xdrExt.attributeList
+                        cx_n = getPxByEMUs(parseInt(a.cx)),cy_n = getPxByEMUs(parseInt(a.cy));
+                        imageObject.toCol = imageObject.fromCol;
+                        imageObject.toColOff = Number(imageObject.fromColOff)+cx_n;
+                        imageObject.toRow = imageObject.fromRow;
+                        imageObject.toRowOff = Number(imageObject.fromRowOff)+cy_n;
+                    }
+                    imageObject.originWidth = cx_n;
+                    imageObject.originHeight = cy_n;
+                    
+                    imageObject.isFixedPos = false;
+                    imageObject.fixedLeft = 0;
+                    imageObject.fixedTop = 0;
+
+                    let imageBorder:IluckyImageBorder = {
+                        color: "#000",
+                        radius: 0,
+                        style: "solid",
+                        width: 0
+                    }
+                    imageObject.border = imageBorder;
+
+                    let imageCrop:IluckyImageCrop = {
+                        height: cy_n,
+                        offsetLeft: 0,
+                        offsetTop: 0,
+                        width: cx_n
+                    }
+                    imageObject.crop = imageCrop;
+
+                    let imageDefault:IluckyImageDefault = {
+                        height: cy_n,
+                        left: x_n,
+                        top: y_n,
+                        width: cx_n
+                    }
+                    imageObject.default = imageDefault;
+                    if(this.images==null){
+                        this.images = {};
+                    }
+                    this.images[imageObject.id || generateRandomIndex("image")] = imageObject;
                 }
             }
-            
-        } 
+        }
+        return null
+    }
+    private getImage = (twoCellAnchor: Element, drawingRelsFile: string) => {
+        let xdr_blipfills = twoCellAnchor.getInnerElements("a:blip");
+        let editAs = getXmlAttibute(twoCellAnchor.attributeList, "editAs", "twoCell");
+        if (xdr_blipfills!=null && xdr_blipfills.length>0) {
+            var xdr_blipfill = xdr_blipfills[0];
+            let rembed = getXmlAttibute(xdr_blipfill.attributeList, "r:embed", null);
+
+            let imageObject: any = this.getBase64ByRid(rembed, drawingRelsFile);
+
+            if(editAs=="absolute"){
+                imageObject.type = "3";
+            }
+            else if(editAs=="oneCell"){
+                imageObject.type = "2";
+            }
+            else{
+                imageObject.type = "1";
+            }
+            return imageObject
+        }
+        return {}
+    }
+    private getGraphic = (twoCellAnchor: Element, drawingRelsFile: string) => {
+        const xdr_graphicFrames = twoCellAnchor.getInnerElements("xdr:graphicFrame");
+        if (xdr_graphicFrames.length) {
+            const xdr_graphicFrame = xdr_graphicFrames[0];
+            const chartImageGroup = new ChartImageGroup({
+                graphicFrame: xdr_graphicFrame,
+                readXml: this.readXml,
+                drawingRelsFile,
+                styles: this.styles,
+            })
+            const imageObject = chartImageGroup.image;
+            if (chartImageGroup.chart) {
+                if(this.charts==null){
+                    this.charts = [];
+                }
+                this.charts.push(chartImageGroup.chart)
+            }
+            return imageObject;
+        }
+        return {};
     }
 
     private getXdrValue(ele:Element[]):number{
