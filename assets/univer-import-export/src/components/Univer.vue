@@ -19,9 +19,11 @@ import { UniverSheetsPrintPlugin } from '@univerjs-pro/sheets-print';
 import { UniverSheetsChartPlugin } from '@univerjs-pro/sheets-chart';
 import { UniverSheetsChartUIPlugin } from '@univerjs-pro/sheets-chart-ui';
 import { UniverLicensePlugin } from '@univerjs-pro/license';
+// 筛选
+import { UniverSheetsFilterPlugin } from '@univerjs/sheets-filter';
+import { UniverSheetsFilterUIPlugin } from '@univerjs/sheets-filter-ui';
 
-import { UniverDocsDrawingPlugin } from '@univerjs/docs-drawing';
-import { IImageIoService, UniverDrawingPlugin } from '@univerjs/drawing';
+import { UniverDrawingPlugin } from '@univerjs/drawing';
 import { UniverDrawingUIPlugin } from '@univerjs/drawing-ui';
 import { UniverSheetsDrawingPlugin } from '@univerjs/sheets-drawing';
 import { UniverSheetsDrawingUIPlugin } from '@univerjs/sheets-drawing-ui';
@@ -38,6 +40,7 @@ import SheetsChartZhCN from '@univerjs-pro/sheets-chart/locale/zh-CN';
 import SheetsChartUIZhCN from '@univerjs-pro/sheets-chart-ui/locale/zh-CN';
 import DrawingUIZhCN from '@univerjs/drawing-ui/locale/zh-CN';
 import SheetsDrawingUIZhCN from '@univerjs/sheets-drawing-ui/locale/zh-CN';
+import SheetsFilterUIZhCN from '@univerjs/sheets-filter-ui/locale/zh-CN';
 
 // 这里的 Facade API 是可选的，你可以根据自己的需求来决定是否引入
 import '@univerjs/sheets/facade';
@@ -57,8 +60,9 @@ import { UniverSheetsCustomMenuPlugin } from './plugins';
 import CustomImportMenu from './plugins/controllers/menu/import.menu';
 import CustomExportMenu from './plugins/controllers/menu/export.menu';
 import CustomSaveMenu from './plugins/controllers/menu/save.menu';
+import { message } from 'antd';
 
-const univerAPI = ref<Funiver | null>(null);
+const univerAPI = ref<FUniver | null>(null);
 const loading = ref(false);
 
 onMounted(() => {
@@ -81,7 +85,8 @@ const init = () => {
         SheetsChartZhCN,
         SheetsChartUIZhCN,
         DrawingUIZhCN,
-        SheetsDrawingUIZhCN
+        SheetsDrawingUIZhCN,
+        SheetsFilterUIZhCN
       ),
     },
   });
@@ -104,6 +109,8 @@ const init = () => {
 
   univer.registerPlugin(UniverSheetsPlugin);
   univer.registerPlugin(UniverSheetsUIPlugin);
+  univer.registerPlugin(UniverSheetsFilterPlugin);
+  univer.registerPlugin(UniverSheetsFilterUIPlugin);
   univer.registerPlugin(UniverSheetsFormulaPlugin);
   univer.registerPlugin(UniverSheetsFormulaUIPlugin);
   univer.registerPlugin(UniverSheetsNumfmtPlugin);
@@ -134,10 +141,10 @@ const init = () => {
         after: ({ error }) => {
           loading.value = false;
           if (error) {
-            Message.error(error.message || '导入失败');
+            message.error(error.message || '导入失败');
             return;
           }
-          Message.success('导入成功');
+          message.success('导入成功');
         },
       }),
       CustomExportMenu({
@@ -145,9 +152,9 @@ const init = () => {
         after: (res) => {
           loading.value = false;
           if (res) {
-            Message.error(res.message || '导出失败');
+            message.error(res.message || '导出失败');
           } else {
-            Message.success('导出成功');
+            message.success('导出成功');
           }
         },
       }),

@@ -31,7 +31,7 @@ export interface UniverMenuConfig {
   id: string;
   operation: ICommand<object, boolean>;
   shortcut?: IShortcutItem<object>;
-  menu?: (accessor: IAccessor) => IMenuButtonItem<string>;
+  menu: () => IMenuButtonItem<string>;
   icon?: { name: string; component: any };
   onlyOperation?: boolean;
 }

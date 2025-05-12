@@ -34,9 +34,7 @@ const SaveShortcutItem: IShortcutItem = {
   binding: MetaKeys.CTRL_COMMAND | KeyCode.S,
 };
 
-function CustomMenuItemSaveButtonFactory(
-  accessor: IAccessor
-): IMenuButtonItem<string> {
+function CustomMenuItemSaveButtonFactory(): IMenuButtonItem<string> {
   return {
     // Bind the command id, clicking the button will trigger this command
     id: OperationId,
