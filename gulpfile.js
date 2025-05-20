@@ -33,7 +33,7 @@ const typescript = require('rollup-plugin-typescript2');
 // rollup converts commonjs module to es6 module
 // const commonjs = require('@rollup/plugin-commonjs');
 // rollup code compression
-// const terser = require('rollup-plugin-terser').terser;
+const terser = require('rollup-plugin-terser').terser;
 // rollup babel plugin, support the latest ES grammar
 // const babel = require('@rollup/plugin-babel').default;
 
@@ -64,7 +64,7 @@ const paths = {
 // };
 
 // Copy html
-function copyHtml(){
+function copyHtml() {
     return src(paths.pages)
         .pipe(dest("dist"));
 }
@@ -79,7 +79,7 @@ function reloadBrowser(done) {
 // Monitoring static file changes
 function watcher(done) {
     // watch static
-    watch(paths.pages,{ delay: 500 }, series(copyHtml, reloadBrowser));
+    watch(paths.pages, { delay: 500 }, series(copyHtml, reloadBrowser));
     done();
 }
 
@@ -92,20 +92,20 @@ const watchedBrowserify = watchify(browserify({
     ],
     cache: {},
     packageCache: {},
-    standalone:'LuckyExcel'
+    standalone: 'LuckyExcel'
 }).plugin(tsify));
 
 // 开发模式，打包成es5，方便在浏览器里直接引用调试
 function bundle() {
     return watchedBrowserify
         .transform('babelify', {
-            presets: ['@babel/preset-env','@babel/preset-typescript'],
+            presets: ['@babel/preset-env', '@babel/preset-typescript'],
             extensions: ['.ts']
         })
         .bundle()
         .pipe(source('luckyexcel.umd.js'))
         .pipe(buffer())
-        .pipe(sourcemaps.init({loadMaps: true}))
+        .pipe(sourcemaps.init({ loadMaps: true }))
         // .pipe(uglify()) //Development environment does not need to compress code
         .pipe(sourcemaps.write('./'))
         .pipe(dest("dist"));
@@ -113,18 +113,41 @@ function bundle() {
 
 // 生产模式，打包成ES模块和Commonjs模块
 async function compile() {
-    
+
     const bundle = await rollup({
         input: 'src/main.esm.ts',
         plugins: [
             // nodeResolve(), // tells Rollup how to find date-fns in node_modules
             // commonjs(), // converts date-fns to ES modules
             typescript({
-                tsconfigOverride: { 
-                    compilerOptions : { module: "ESNext" } 
+                tsconfigOverride: {
+                    compilerOptions: { module: "ESNext" }
                 }
             }),
-            // terser(), // minify, but only in production
+            terser({
+                compress: {
+                    drop_console: true,
+                    drop_debugger: true,
+                    unsafe_methods: false,
+                    passes: 3,
+                    loops: true,
+                    properties: true,  
+                    reduce_vars: true, 
+                    unused: true,
+                },
+                mangle: {
+                    toplevel: false,
+                    keep_classnames: false,
+                    keep_fnames: false,
+                    properties: true
+                },
+                format: {
+                    comments: false,
+                    ascii_only: true
+                },
+                keep_classnames: false,
+                keep_fnames: false
+            }), // minify, but only in production
             // babel(babelConfig)
         ],
     });
@@ -133,31 +156,31 @@ async function compile() {
         file: pkg.module,
         format: 'esm',
         name: 'LuckyExcel',
-        inlineDynamicImports:true,
+        inlineDynamicImports: true,
         // sourcemap: true
     })
     bundle.write({
         file: pkg.main,
         format: 'cjs',
         name: 'LuckyExcel',
-        inlineDynamicImports:true,
+        inlineDynamicImports: true,
         // sourcemap: true
     })
-    bundle.write({
-        file: pkg.browser,
-        format: 'umd',
-        name: 'LuckyExcel',
-        inlineDynamicImports:true,
-        globals: {
-            nanoid: 'nanoid',
-            dayjs: 'dayjs',
-            '@univerjs/core': 'core',
-            '@progress/jszip-esm': 'JSZip',
-            '@zwight/exceljs': 'exceljs',
-            papaparse: 'Papa'
-        }
-        // sourcemap: true
-    })
+    // bundle.write({
+    //     file: pkg.browser,
+    //     format: 'umd',
+    //     name: 'LuckyExcel',
+    //     inlineDynamicImports:true,
+    //     globals: {
+    //         nanoid: 'nanoid',
+    //         dayjs: 'dayjs',
+    //         '@univerjs/core': 'core',
+    //         '@progress/jszip-esm': 'JSZip',
+    //         '@zwight/exceljs': 'exceljs',
+    //         papaparse: 'Papa'
+    //     }
+    //     // sourcemap: true
+    // })
 }
 
 // 生产模式，打包成UMD模块
@@ -167,23 +190,42 @@ function bundleUMD() {
         entries: ['src/main.umd.ts'],
         cache: {},
         packageCache: {},
-        standalone:'LuckyExcel'
+        standalone: 'LuckyExcel'
     })
-    .plugin(tsify)
-    .transform('babelify', {
-        presets: ['@babel/preset-env','@babel/preset-typescript'],
-        extensions: ['.ts', '.js'],
-    })
-    .bundle()
-    .pipe(source('luckyexcel.umd.js'))
-    .pipe(buffer())
-    // .pipe(sourcemaps.init({loadMaps: true})) //The production environment does not need source map file
-    // .pipe(uglify())
-    .pipe(sourcemaps.write('./'))
-    .pipe(dest("dist"));
-    
+        .external(['@univerjs/core'])
+        .plugin(tsify)
+        .transform('babelify', {
+            presets: ['@babel/preset-env', '@babel/preset-typescript'],
+            extensions: ['.ts', '.js'],
+        })
+        .transform('browserify-shim')
+        .bundle()
+        .pipe(source('luckyexcel.umd.js'))
+        .pipe(buffer())
+        // .pipe(sourcemaps.init({loadMaps: true})) //The production environment does not need source map file
+        .pipe(uglify({
+            // 混淆选项
+            mangle: {
+                toplevel: false,    // 混淆顶级作用域变量名
+            },
+            // 压缩选项
+            compress: {
+                drop_console: true, // 删除console语句
+                dead_code: true,    // 删除死代码
+                conditionals: true, // 优化条件表达式
+                comparisons: true   // 优化比较运算
+            },
+            // 输出选项
+            output: {
+                comments: false,
+                ascii_only: true
+            }
+        }))
+        .pipe(sourcemaps.write('./'))
+        .pipe(dest("dist"));
+
 }
-  
+
 
 // 清除dist目录
 function clean() {
@@ -202,7 +244,7 @@ function serve() {
 // 顺序执行
 const dev = series(clean, copyHtml, bundle, watcher, serve);
 
-const build = series(clean, parallel(copyHtml, compile));
+const build = series(clean, parallel(copyHtml, compile, bundleUMD));
 
 // 每次TypeScript文件改变时Browserify会执行bundle函数
 watchedBrowserify.on("update", series(bundle, reload));

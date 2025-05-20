@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>univer-import-export-script</title>
+    <script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <script src="https://unpkg.com/rxjs/dist/bundles/rxjs.umd.min.js"></script>
+    <script src="https://unpkg.com/echarts@5.6.0/dist/echarts.min.js"></script>
+
+    <script src="https://unpkg.com/@univerjs/presets/lib/umd/index.js"></script>
+
+    <script src="https://unpkg.com/@univerjs/preset-sheets-core/lib/umd/index.js"></script>
+    <script src="https://unpkg.com/@univerjs/preset-sheets-core/lib/umd/locales/zh-CN.js"></script>
+    <script src="./libs/univer-icons.umd.js"></script>
+
+    <script src="../../dist/luckyexcel.umd.js"></script>
+
+    <link rel="stylesheet" href="https://unpkg.com/@univerjs/preset-sheets-core/lib/index.css" />
+    <style>
+        html,
+        body,
+        #root,
+        #app {
+            padding: 0;
+            margin: 0;
+            height: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app"></div>
+
+    <script src="./plugins/controllers/menu/index.js"></script>
+    <script src="./plugins/controllers/menu/save.menu.js"></script>
+    <script src="./plugins/controllers/menu/import.menu.js"></script>
+    <script src="./plugins/controllers/custom-menu.controller.js"></script>
+    <script src="./plugins/index.js"></script>
+    <script>
+        const { createUniver } = UniverPresets;
+        const { LocaleType, merge } = UniverCore;
+        const { defaultTheme } = UniverDesign;
+        const { UniverSheetsCorePreset } = UniverPresetSheetsCore
+
+        const { univerAPI, univer } = createUniver({
+            locale: LocaleType.ZH_CN,
+            locales: {
+                [LocaleType.ZH_CN]: merge(
+                    {},
+                    UniverPresetSheetsCoreZhCN,
+                ),
+            },
+            theme: defaultTheme,
+            presets: [
+                UniverSheetsCorePreset(),
+            ],
+        });
+
+        univer.registerPlugin(UniverSheetsCustomMenuPlugin, {
+            menu: [
+                CustomSaveMenu({
+                    after: () => {
+                        const saveData = getUniverSnapshot();
+                        console.log(saveData);
+                    },
+                }),
+                CustomImportMenu({
+                    before: () => {
+                        // loading.value = true;
+                    },
+                    after: ({ error }) => {
+                        // loading.value = false;
+                        if (error) {
+                            console.error(error.message || '导入失败');
+                            return;
+                        }
+                        console.info('导入成功');
+                    },
+                }),
+            ]
+        })
+
+        const getUniverSnapshot = () => {
+            const activeWorkbook = univerAPI.getActiveWorkbook();
+            if (!activeWorkbook) {
+                throw new Error('Workbook is not initialized');
+            }
+            return activeWorkbook.save();
+        };
+
+        univerAPI.createWorkbook({ name: 'Test Sheet' }); // 创建一个名为 'Test Sheet' 的工作表
+    </script>
+</body>
+
+</html>

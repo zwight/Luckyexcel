@@ -31,6 +31,7 @@
 
 ### CDN
 ```html
+<script src="https://unpkg.com/@univerjs/core/lib/umd/index.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@zwight/luckyexcel/dist/luckyexcel.umd.min.js"></script>
 <script>
     // Univer导入Excel文件
