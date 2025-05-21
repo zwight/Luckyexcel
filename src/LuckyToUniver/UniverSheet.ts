@@ -206,15 +206,15 @@ export class UniverSheet extends UniverSheetBase {
         }
         if (v.ct && v.ct.t === 'inlineStr') {
 
-            v.ct.s = v.ct.s.map(d => {
+            v.ct.s = v.ct.s?.map(d => {
                 d.v = removeLastChar(d.v || '', '\r\n');
                 return d
-            })
+            }) || []
 
             let dataStream = v.ct.s.reduce((prev, cur) => {
                 return prev + cur.v;
             }, '');
-            dataStream = dataStream?.replace(/\n/g, '\r') + '\r\n';
+            dataStream = dataStream ? dataStream.replace(/\n/g, '\r') + '\r\n' : '';
             const matchChart = {
                 r: '\r', // PARAGRAPH
                 n: '\n', // SECTION_BREAK
@@ -240,8 +240,8 @@ export class UniverSheet extends UniverSheetBase {
                     startIndex: d,
                 };
             });
-            const textRuns = v.ct.s?.map((d, index) => {
-                const start = v.ct!.s?.reduce((prev, cur, curi) => {
+            const textRuns = v.ct.s.map((d, index) => {
+                const start = v.ct.s.reduce((prev, cur, curi) => {
                     if (curi < index) return prev + (cur.v?.length || 0);
                     return prev;
                 }, 0);
