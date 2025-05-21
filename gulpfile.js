@@ -131,7 +131,6 @@ async function compile() {
                     unsafe_methods: false,
                     passes: 3,
                     loops: true,
-                    properties: true,  
                     reduce_vars: true, 
                     unused: true,
                 },
@@ -139,7 +138,6 @@ async function compile() {
                     toplevel: false,
                     keep_classnames: false,
                     keep_fnames: false,
-                    properties: true
                 },
                 format: {
                     comments: false,
