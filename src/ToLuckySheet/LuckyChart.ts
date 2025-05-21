@@ -1,5 +1,4 @@
-import { numberToABC } from "@univerjs/core"
-import { generateRandomId, getPxByEMUs, getRelationShip, getcellrange, hexToRgbArray } from "../common/method"
+import { generateRandomId, getPxByEMUs, getRelationShip, getcellrange, hexToRgbArray, numberToABC } from "../common/method"
 import { LuckyChart, LuckyChartImageBase } from "./LuckyBase"
 import { Element, IStyleCollections, ReadXml } from "./ReadXml"
 import { ChartTypeBits, LabelContentType } from "../common/constant"
