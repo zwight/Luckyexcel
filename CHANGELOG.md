@@ -1,5 +1,15 @@
 
 
+## [1.1.5](https://github.com/zwight/Luckyexcel/compare/v1.1.4...v1.1.5) (2025-05-21)
+
+
+### Bug Fixes
+
+* [#11](https://github.com/zwight/Luckyexcel/issues/11), fix cdn load error and add cdn example ([41270ad](https://github.com/zwight/Luckyexcel/commit/41270adbabd2e1258daa0f514f8b746786421e17))
+* [#14](https://github.com/zwight/Luckyexcel/issues/14), handle the value of inlineStr may be empty ([f2d4e18](https://github.com/zwight/Luckyexcel/commit/f2d4e1809fe96017a53a962eda22a4a419548539))
+* [#6](https://github.com/zwight/Luckyexcel/issues/6) use wps date default format ([f311bcf](https://github.com/zwight/Luckyexcel/commit/f311bcfe8e7f42a5c7392424f78b1ac9100058ef))
+* [#8](https://github.com/zwight/Luckyexcel/issues/8), fix filter column is empty and filter unsupport image type ([b8a66b9](https://github.com/zwight/Luckyexcel/commit/b8a66b96d6f64a74f7d2feafc2d85d74740bf31e))
+
 ## [1.1.4](https://github.com/zwight/Luckyexcel/compare/v1.1.3...v1.1.4) (2025-04-24)
 
 
