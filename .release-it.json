@@ -9,6 +9,11 @@
     "github": {
         "release": true
     },
+    "hooks": {
+        "before:init": [
+            "npm run build"
+        ]
+    },
     "plugins": {
         "@release-it/conventional-changelog": {
             "preset": "angular",
