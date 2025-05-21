@@ -27,9 +27,13 @@ node_modules/
 dist/luckysheet/
 dist/*.map
 dist/index.html
-assets/luckysheet/
+assets/
 src
 deploy.bat
 gulpfile.js
-trconfig.json
+tsconfig.json
 .vs
+
+.release-it.json
+commitlint.config.js
+CHANGELOG.md
