@@ -17,6 +17,6 @@
     "skipLibCheck": true,
     "experimentalDecorators": true
   },
-  "include": ["src/**/*", "src/**/*.d.ts", "src/**/*.vue"],
+  "include": ["./src/**/*", "./src/**/*.d.ts", "./src/**/*.vue"],
   "exclude": ["node_modules"]
 }

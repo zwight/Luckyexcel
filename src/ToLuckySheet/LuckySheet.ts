@@ -274,9 +274,18 @@ export class LuckySheet extends LuckySheetBase {
                     }else{
                         xdrExt = twoCellAnchor.getInnerElements("xdr:ext")[0]
                     }
+                    let imageObject: any = {};
                     
                     let xdr_graphicFrame = twoCellAnchor.getInnerElements("xdr:graphicFrame");
-                    let imageObject = xdr_graphicFrame ? this.getGraphic(twoCellAnchor, drawingRelsFile) : this.getImage(twoCellAnchor, drawingRelsFile)
+                    if (xdr_graphicFrame) {
+                        imageObject = this.getGraphic(twoCellAnchor, drawingRelsFile)
+                    }
+                    let xdr_pic = twoCellAnchor.getInnerElements("xdr:pic");
+                    if (xdr_pic) {
+                        imageObject = this.getImage(twoCellAnchor, drawingRelsFile)
+                    }
+
+                    // let imageObject = xdr_graphicFrame ? this.getGraphic(twoCellAnchor, drawingRelsFile) : this.getImage(twoCellAnchor, drawingRelsFile)
 
                     let x_n =0,y_n = 0;
                     let cx_n = 0, cy_n = 0;
@@ -331,7 +340,10 @@ export class LuckySheet extends LuckySheetBase {
                     if(this.images==null){
                         this.images = {};
                     }
-                    this.images[imageObject.id || generateRandomIndex("image")] = imageObject;
+
+                    if (imageObject.id) {
+                        this.images[imageObject.id || generateRandomIndex("image")] = imageObject;
+                    }
                 }
             }
         }
