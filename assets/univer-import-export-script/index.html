@@ -18,8 +18,6 @@
     <script src="https://unpkg.com/@univerjs/preset-sheets-core/lib/umd/locales/zh-CN.js"></script>
     <script src="./libs/univer-icons.umd.js"></script>
 
-    <script src="../../dist/luckyexcel.umd.js"></script>
-
     <link rel="stylesheet" href="https://unpkg.com/@univerjs/preset-sheets-core/lib/index.css" />
     <style>
         html,
@@ -35,6 +33,28 @@
 
 <body>
     <div id="app"></div>
+    <script>
+        (function loadScriptWithFallback() {
+            const primarySrc = '../../dist/luckyexcel.umd.js';
+            const backupSrc = 'luckyexcel.umd.js';
+
+            const script = document.createElement('script');
+            script.src = primarySrc;
+
+            // 加载失败时使用备用地址
+            script.onerror = function () {
+                console.warn('Primary script failed, loading fallback...');
+                const fallbackScript = document.createElement('script');
+                fallbackScript.src = backupSrc;
+                fallbackScript.onerror = function () {
+                    console.error('Both script sources failed to load.');
+                };
+                document.head.appendChild(fallbackScript);
+            };
+
+            document.head.appendChild(script);
+        })();
+    </script>
 
     <script src="./plugins/controllers/menu/index.js"></script>
     <script src="./plugins/controllers/menu/save.menu.js"></script>

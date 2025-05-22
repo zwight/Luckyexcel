@@ -96,7 +96,7 @@ export class LuckySheetCelldata extends LuckySheetCelldataBase {
 
         }
 
-        let familyFont = null;
+        let familyFont: string = null;
         let quotePrefix;
         if (s != null) {
             let sNum = parseInt(s);
@@ -388,10 +388,7 @@ export class LuckySheetCelldata extends LuckySheetCelldataBase {
                 value = this.htmlDecode(value);
             }
 
-            if (t == ST_CellType["SharedString"]) {
-                let siIndex = parseInt(v[0].value);
-                let sharedSI = sharedStrings[siIndex];
-
+            const generateInlineString = (sharedSI: Element) =>{
                 let rFlag = sharedSI.getInnerElements("r");
                 if (rFlag == null) {
                     let tFlag = sharedSI.getInnerElements("t");
@@ -726,9 +723,21 @@ export class LuckySheetCelldata extends LuckySheetCelldataBase {
                     cellValue.ct = cellFormat;
                 }
             }
-            // to be confirmed
+            if (t == ST_CellType["SharedString"]) {
+                let siIndex = parseInt(v[0].value);
+                let sharedSI = sharedStrings[siIndex];
+                generateInlineString(sharedSI);
+                
+            }
             else if (t == ST_CellType["InlineString"] && v != null) {
                 cellValue.v = "'" + value;
+                if (cellValue.ct) cellValue.ct.t = "s";
+
+                let is = this.cell.getInnerElements("is");
+
+                if (is.length) {
+                    generateInlineString(is[0]);
+                }
             }
             else if (t == ST_CellType["String"] && value.includes('=DISPIMG')) {
                 let cellFormat = cellValue.ct;
