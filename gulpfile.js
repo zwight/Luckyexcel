@@ -41,7 +41,7 @@ const pkg = require('./package.json');
 
 
 const paths = {
-    pages: ['src/*.html']
+    pages: ['assets/univer-import-export-script/**'],
 };
 
 // babel config
@@ -98,10 +98,12 @@ const watchedBrowserify = watchify(browserify({
 // 开发模式，打包成es5，方便在浏览器里直接引用调试
 function bundle() {
     return watchedBrowserify
+        .external(['@univerjs/core'])
         .transform('babelify', {
             presets: ['@babel/preset-env', '@babel/preset-typescript'],
-            extensions: ['.ts']
+            extensions: ['.ts', '.js']
         })
+        .transform('browserify-shim')
         .bundle()
         .pipe(source('luckyexcel.umd.js'))
         .pipe(buffer())
@@ -234,7 +236,7 @@ function clean() {
 function serve() {
     browserSync.init({
         server: {
-            baseDir: "dist"
+            baseDir: 'dist'
         }
     });
 }
@@ -242,7 +244,7 @@ function serve() {
 // 顺序执行
 const dev = series(clean, copyHtml, bundle, watcher, serve);
 
-const build = series(clean, parallel(copyHtml, compile, bundleUMD));
+const build = series(clean, parallel(compile, bundleUMD));
 
 // 每次TypeScript文件改变时Browserify会执行bundle函数
 watchedBrowserify.on("update", series(bundle, reload));
