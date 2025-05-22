@@ -1,5 +1,12 @@
 
 
+## [1.1.6-beta.0](https://github.com/zwight/Luckyexcel/compare/v1.1.5...v1.1.6-beta.0) (2025-05-22)
+
+
+### Bug Fixes
+
+* [#16](https://github.com/zwight/Luckyexcel/issues/16), fix cell type is inlineString show expection ([f463720](https://github.com/zwight/Luckyexcel/commit/f46372065b7916326c71ade0cc56e1c09a07d1af))
+
 ## [1.1.5](https://github.com/zwight/Luckyexcel/compare/v1.1.4...v1.1.5) (2025-05-21)
 
 
