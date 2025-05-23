@@ -1,5 +1,12 @@
 
 
+## [1.1.6-beta.1](https://github.com/zwight/Luckyexcel/compare/v1.1.6-beta.0...v1.1.6-beta.1) (2025-05-23)
+
+
+### Bug Fixes
+
+* [#16](https://github.com/zwight/Luckyexcel/issues/16), fix text format is unicode ([8c0b44d](https://github.com/zwight/Luckyexcel/commit/8c0b44d422da6a41ae3b8637ccc9960f08844175))
+
 ## [1.1.6-beta.0](https://github.com/zwight/Luckyexcel/compare/v1.1.5...v1.1.6-beta.0) (2025-05-22)
 
 
