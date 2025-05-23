@@ -401,6 +401,9 @@ export class LuckySheetCelldata extends LuckySheetCelldataBase {
                         text = escapeCharacter(text);
 
                         //isContainMultiType(text) &&
+                        if (/&#\d+;/.test(text)) {
+                            text = this.htmlDecode(text);
+                        }
                         if (familyFont == "Roman" && text.length > 0) {
                             let textArray = text.split("");
                             let preWordType: string = null, wordText = "", preWholef: string = null;
@@ -730,9 +733,15 @@ export class LuckySheetCelldata extends LuckySheetCelldataBase {
                 
             }
             else if (t == ST_CellType["InlineString"] && v != null) {
-                cellValue.v = "'" + value;
-                if (cellValue.ct) cellValue.ct.t = "s";
+                cellValue.v = this.htmlDecode(value);
 
+                let cellFormat = cellValue.ct;
+                if (cellFormat == null) {
+                    cellFormat = new LuckySheetCellFormat();
+                }
+                cellFormat.t = "s";
+                cellValue.ct = cellFormat;
+                
                 let is = this.cell.getInnerElements("is");
 
                 if (is.length) {
