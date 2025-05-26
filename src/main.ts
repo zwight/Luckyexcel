@@ -79,6 +79,7 @@ export class LuckyExcel {
         let handleZip: HandleZip = new HandleZip(excelFile);
 
         handleZip.unzipFile(function (files: IuploadfileList) {
+            console.log('input------>', files);
             let luckyFile = new LuckyFile(files, excelFile.name);
             let luckysheetfile = luckyFile.Parse();
             let exportJson = JSON.parse(luckysheetfile);

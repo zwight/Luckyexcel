@@ -455,10 +455,6 @@ export class LuckySheet extends LuckySheetBase {
                         this.config.colhidden = {};
                     }
                     this.config.colhidden[m] = 0;
-
-                    if(this.config.columnlen){
-                        delete this.config.columnlen[m];
-                    }
                     
                 }
 
@@ -505,10 +501,6 @@ export class LuckySheet extends LuckySheetBase {
                     this.config.rowhidden = {};
                 }
                 this.config.rowhidden[rowNoNum] = 0;
-                
-                if(this.config.rowlen){
-                    delete this.config.rowlen[rowNoNum];
-                }
                 
             }
 
