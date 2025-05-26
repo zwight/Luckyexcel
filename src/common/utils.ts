@@ -45,3 +45,8 @@ export const formatSheetData = (sheetData: string, file: File) => {
 
     return arr;
 };
+
+export const replaceSpecialWrap = (text: string): string => {
+    text = text.replace(/_x000D_/g, "").replace(/&#13;&#10;/g, "\r\n").replace(/&#13;/g, "\r").replace(/&#10;/g, "\n");
+    return text;
+}

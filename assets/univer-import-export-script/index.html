@@ -16,9 +16,14 @@
 
     <script src="https://unpkg.com/@univerjs/preset-sheets-core/lib/umd/index.js"></script>
     <script src="https://unpkg.com/@univerjs/preset-sheets-core/lib/umd/locales/zh-CN.js"></script>
+
+    <script src="https://unpkg.com/@univerjs/preset-sheets-filter/lib/umd/index.js"></script>
+    <script src="https://unpkg.com/@univerjs/preset-sheets-filter/lib/umd/locales/zh-CN.js"></script>
+
     <script src="./libs/univer-icons.umd.js"></script>
 
     <link rel="stylesheet" href="https://unpkg.com/@univerjs/preset-sheets-core/lib/index.css" />
+    <link rel="stylesheet" href="https://unpkg.com/@univerjs/preset-sheets-filter/lib/index.css" />
     <style>
         html,
         body,
@@ -65,7 +70,8 @@
         const { createUniver } = UniverPresets;
         const { LocaleType, merge } = UniverCore;
         const { defaultTheme } = UniverDesign;
-        const { UniverSheetsCorePreset } = UniverPresetSheetsCore
+        const { UniverSheetsCorePreset } = UniverPresetSheetsCore;
+        const { UniverSheetsFilterPreset } = UniverPresetSheetsFilter
 
         const { univerAPI, univer } = createUniver({
             locale: LocaleType.ZH_CN,
@@ -73,11 +79,13 @@
                 [LocaleType.ZH_CN]: merge(
                     {},
                     UniverPresetSheetsCoreZhCN,
+                    UniverPresetSheetsFilterZhCN
                 ),
             },
             theme: defaultTheme,
             presets: [
                 UniverSheetsCorePreset(),
+                UniverSheetsFilterPreset(),
             ],
         });
 
