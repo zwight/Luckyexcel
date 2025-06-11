@@ -29,7 +29,8 @@
   "scripts": {
     "build": "gulp build",
     "dev": "gulp dev",
-    "release": "release-it"
+    "release": "release-it",
+    "release:beta": "release-it --preRelease=beta"
   },
   "keywords": [
     "Luckysheet",
