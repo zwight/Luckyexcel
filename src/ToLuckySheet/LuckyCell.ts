@@ -6,6 +6,7 @@ import { IattributeList } from "../ICommon";
 import { LuckySheetborderInfoCellForImp, LuckySheetCelldataBase, LuckySheetCelldataValue, LuckySheetCellFormat, LuckyInlineString } from "./LuckyBase";
 import { getBackgroundByFill, getFontStyle, handleBorder } from './style'
 import { ImageList } from "./LuckyImage";
+import { replaceSpecialWrap } from "../common/utils";
 
 export class LuckySheetCelldata extends LuckySheetCelldataBase {
     _borderObject: IluckySheetborderInfoCellForImp
@@ -537,7 +538,7 @@ export class LuckySheetCelldata extends LuckySheetCelldataBase {
                         else {
 
 
-                            text = this.replaceSpecialWrap(text);
+                            text = replaceSpecialWrap(text);
 
                             if (text.indexOf("\r\n") > -1 || text.indexOf("\n") > -1) {
                                 let InlineString = new LuckyInlineString();
@@ -597,7 +598,7 @@ export class LuckySheetCelldata extends LuckySheetCelldataBase {
 
                         if (tFlag != null && tFlag.length > 0) {
                             let text = tFlag[0].value;
-                            text = this.replaceSpecialWrap(text);
+                            text = replaceSpecialWrap(text);
                             text = escapeCharacter(text);
                             InlineString.v = text;
                         }
@@ -775,11 +776,6 @@ export class LuckySheetCelldata extends LuckySheetCelldataBase {
 
         return cellValue;
 
-    }
-
-    private replaceSpecialWrap(text: string): string {
-        text = text.replace(/_x000D_/g, "").replace(/&#13;&#10;/g, "\r\n").replace(/&#13;/g, "\r").replace(/&#10;/g, "\n");
-        return text;
     }
 
     private htmlDecode(str: string): string {
