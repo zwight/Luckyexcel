@@ -67,5 +67,3 @@ const CustomExportMenu = (config) => ({
   menu: CustomMenuItemExportButtonFactory,
   icon: { name: 'ExportSingle', component: ExportSingle },
 });
-
-export default CustomExportMenu;

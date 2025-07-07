@@ -18,9 +18,18 @@ export class LuckyDefineNames {
     constructor(readXml: ReadXml) {
         let definedNames = readXml.getElementsByTagName("definedNames/definedName", workBookFile);
         const obj: IDefinedNames = {};
+        const validNames = (name: string) => {
+            try {
+                return typeof name === 'string' && /^[a-zA-Z_][\w.]*$/.test(name);
+            } catch {
+                return false;
+            }
+        };
         definedNames.forEach(d => {
             const definedName = new LuckyDefineName(d)
-            obj[definedName.id] = definedName
+            if (validNames(definedName.name)) {
+                obj[definedName.id] = definedName
+            }
         })
         this.defineNames = obj;
     }

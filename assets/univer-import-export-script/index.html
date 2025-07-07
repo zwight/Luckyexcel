@@ -64,6 +64,7 @@
     <script src="./plugins/controllers/menu/index.js"></script>
     <script src="./plugins/controllers/menu/save.menu.js"></script>
     <script src="./plugins/controllers/menu/import.menu.js"></script>
+    <script src="./plugins/controllers/menu/export.menu.js"></script>
     <script src="./plugins/controllers/custom-menu.controller.js"></script>
     <script src="./plugins/index.js"></script>
     <script>
@@ -89,6 +90,13 @@
             ],
         });
 
+        const getUniverSnapshot = () => {
+            const activeWorkbook = univerAPI.getActiveWorkbook();
+            if (!activeWorkbook) {
+                throw new Error('Workbook is not initialized');
+            }
+            return activeWorkbook.save();
+        };
         univer.registerPlugin(UniverSheetsCustomMenuPlugin, {
             menu: [
                 CustomSaveMenu({
@@ -110,16 +118,19 @@
                         console.info('导入成功');
                     },
                 }),
+                CustomExportMenu({
+                    snapshot: getUniverSnapshot,
+                    after: (res) => {
+                    loading.value = false;
+                    if (res) {
+                        message.error(res.message || '导出失败');
+                    } else {
+                        message.success('导出成功');
+                    }
+                    },
+                }),
             ]
         })
-
-        const getUniverSnapshot = () => {
-            const activeWorkbook = univerAPI.getActiveWorkbook();
-            if (!activeWorkbook) {
-                throw new Error('Workbook is not initialized');
-            }
-            return activeWorkbook.save();
-        };
 
         univerAPI.createWorkbook({ name: 'Test Sheet' }); // 创建一个名为 'Test Sheet' 的工作表
     </script>
