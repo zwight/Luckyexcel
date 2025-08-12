@@ -1,6 +1,6 @@
 {
   "name": "@zwight/luckyexcel",
-  "version": "1.1.6-beta.1",
+  "version": "1.1.6",
   "description": "An excel import and export library adapted to Luckysheet",
   "main": "dist/luckyexcel.cjs.js",
   "module": "dist/luckyexcel.esm.js",
@@ -29,7 +29,8 @@
   "scripts": {
     "build": "gulp build",
     "dev": "gulp dev",
-    "release": "release-it"
+    "release": "release-it",
+    "release:beta": "release-it --preRelease=beta"
   },
   "keywords": [
     "Luckysheet",

@@ -1,5 +1,12 @@
 
 
+## [1.1.6](https://github.com/zwight/Luckyexcel/compare/v1.1.6-beta.1...v1.1.6) (2025-06-11)
+
+
+### Bug Fixes
+
+* fix excel has custom filter and set column or row length when hidden ([c55b87e](https://github.com/zwight/Luckyexcel/commit/c55b87ef13ea71d4af0c3ca312d11a7e1c86330d))
+
 ## [1.1.6-beta.1](https://github.com/zwight/Luckyexcel/compare/v1.1.6-beta.0...v1.1.6-beta.1) (2025-05-23)
 
 
