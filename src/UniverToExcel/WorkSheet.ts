@@ -174,6 +174,8 @@ function handleValue(cell: any, cellSource: any, workbook: Workbook) {
         }
     } else if (cell.si) {
         value = { formula: cell.si, result: cell.v }
+    } else if (cell.f) {
+        value = { formula: cell.f, result: cell.v }
     } else {
         value = cell.v
     }
