@@ -1,6 +1,6 @@
 {
-  "name": "@zwight/luckyexcel",
-  "version": "1.1.6",
+  "name": "@applead/luckyexcel",
+  "version": "1.2.1",
   "description": "An excel import and export library adapted to Luckysheet",
   "main": "dist/luckyexcel.cjs.js",
   "module": "dist/luckyexcel.esm.js",
@@ -29,6 +29,7 @@
   "scripts": {
     "build": "gulp build",
     "dev": "gulp dev",
+    "test": "node --test tests/**/*.test.cjs",
     "release": "release-it",
     "release:beta": "release-it --preRelease=beta"
   },
@@ -36,11 +37,11 @@
     "Luckysheet",
     "excel"
   ],
-  "author": "zwight0705@gmail.com",
-  "homepage": "https://github.com/zwight/Luckyexcel",
+  "author": "Mustafa Mansoor <mustafamansoor47@gmail.com>",
+  "homepage": "https://github.com/mustafamansoor-applead/Luckyexcel",
   "repository": {
     "type": "git",
-    "url": "https://github.com/zwight/Luckyexcel.git"
+    "url": "https://github.com/mustafamansoor-applead/Luckyexcel.git"
   },
   "license": "MIT",
   "devDependencies": {

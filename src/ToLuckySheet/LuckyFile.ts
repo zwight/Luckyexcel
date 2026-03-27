@@ -2,11 +2,17 @@
 import { LuckySheet} from "./LuckySheet";
 import {IuploadfileList, IattributeList} from "../ICommon";
 import {workBookFile, coreFile, appFile, stylesFile, sharedStringsFile,numFmtDefault,theme1File,calcChainFile,workbookRels, numFmtDefaultMap, cellImages} from "../common/constant";
-import { ReadXml,IStyleCollections,Element } from "./ReadXml";
+import { ReadXml,IStyleCollections,Element,getNormalizedThemeColors } from "./ReadXml";
 import {getXmlAttibute} from "../common/method";
 import { LuckyFileBase,LuckyFileInfo,LuckySheetBase,LuckySheetCelldataBase, WorkBookInfo } from "./LuckyBase";
 import {ImageList} from "./LuckyImage";
 import { LuckyDefineNames } from "./LuckyDefineName";
+import { ProfileLogger, createProfileLogger } from "../common/profile";
+
+export interface LuckyFileParseOptions {
+    includeCharts?: boolean;
+    profile?: boolean;
+}
 
 export class LuckyFile extends LuckyFileBase {
 
@@ -37,6 +43,7 @@ export class LuckyFile extends LuckyFileBase {
         this.styles["fills"] =  this.readXml.getElementsByTagName("fills/fill", stylesFile);
         this.styles["borders"] =  this.readXml.getElementsByTagName("borders/border", stylesFile);
         this.styles["clrScheme"] =  this.readXml.getElementsByTagName("a:clrScheme/a:dk1|a:lt1|a:dk2|a:lt2|a:accent1|a:accent2|a:accent3|a:accent4|a:accent5|a:accent6|a:hlink|a:folHlink", theme1File);
+        this.styles["resolvedThemeColors"] = getNormalizedThemeColors(this.styles["clrScheme"] as Element[]);
         this.styles["indexedColors"] =  this.readXml.getElementsByTagName("colors/indexedColors/rgbColor", stylesFile);
         this.styles["mruColors"] =  this.readXml.getElementsByTagName("colors/mruColors/color", stylesFile);
         this.styles['dxfs'] = this.readXml.getElementsByTagName("dxfs/dxf", stylesFile);
@@ -124,7 +131,7 @@ export class LuckyFile extends LuckyFileBase {
     /**
     * @return All sheet , include whole information
     */
-    getSheetsFull(isInitialCell:boolean=true){
+    getSheetsFull(isInitialCell:boolean=true, options: LuckyFileParseOptions = {}, profiler?: ProfileLogger){
         let sheets = this.readXml.getElementsByTagName("sheets/sheet", workBookFile);
         let sheetList:IattributeList = {};
         for(let key in sheets){
@@ -152,6 +159,7 @@ export class LuckyFile extends LuckyFileBase {
             }
 
             if(sheetFile!=null){
+                const sheetProfiler = createProfileLogger(options.profile, `LuckyFile.sheet:${sheetName}`);
                 let sheet = new LuckySheet(sheetName, sheetId, order, isInitialCell,
                     {
                         sheetFile:sheetFile,
@@ -164,9 +172,16 @@ export class LuckyFile extends LuckyFileBase {
                         drawingFile:drawingFile,
                         drawingRelsFile: drawingRelsFile,
                         hide: hide,
-                        cellImages: this.cellImages
+                        cellImages: this.cellImages,
+                        includeCharts: options.includeCharts !== false,
+                        profile: options.profile
                     }
                 )
+                sheetProfiler.end({
+                    cellCount: sheet.celldata?.length || 0,
+                    imageCount: sheet.images ? Object.keys(sheet.images).length : 0,
+                    chartCount: sheet.charts?.length || 0,
+                });
                 this.columnWidthSet = [];
                 this.rowHeightSet = [];
 
@@ -176,6 +191,9 @@ export class LuckyFile extends LuckyFileBase {
                 order++;
             }
         }
+        profiler?.mark('sheets parsed', {
+            sheetCount: this.sheets?.length || 0,
+        });
     }
 
     private columnWidthSet:number[] = [];
@@ -364,7 +382,16 @@ export class LuckyFile extends LuckyFileBase {
     /**
     * @return LuckySheet file json
     */
-    Parse():string{
+    Parse(options: LuckyFileParseOptions = {}):string{
+        return JSON.stringify(this.buildParsedFile(options));
+    }
+
+    ParseObject(options: LuckyFileParseOptions = {}): ILuckyFile {
+        return this.toPlainObject(this.buildParsedFile(options));
+    }
+
+    private buildParsedFile(options: LuckyFileParseOptions = {}): ILuckyFile {
+        const profiler = createProfileLogger(options.profile, 'LuckyFile.parse');
         // let xml = this.readXml;
         // for(let key in this.sheetNameList){
         //     let sheetName=this.sheetNameList[key];
@@ -374,8 +401,12 @@ export class LuckyFile extends LuckyFileBase {
         // return "";
 
         this.getWorkBookInfo();
+        profiler.mark('workbook info parsed');
         this.handleWorkBookInfo();
-        this.getSheetsFull();
+        profiler.mark('defined names parsed', {
+            defineNameCount: Object.keys(this.workbook?.defineNames || {}).length,
+        });
+        this.getSheetsFull(true, options, profiler);
 
         // for(let i=0;i<this.sheets.length;i++){
         //     let sheet = this.sheets[i];
@@ -398,10 +429,15 @@ export class LuckyFile extends LuckyFileBase {
         //     }
         // }
 
-        return this.toJsonString(this);
+        const output = this.toJsonObject(this);
+        profiler.end({
+            sheetCount: output.sheets?.length || 0,
+            cellCount: output.sheets?.reduce((sum, sheet) => sum + (sheet.celldata?.length || 0), 0) || 0,
+        });
+        return output;
     }
 
-    private toJsonString(file:ILuckyFile):string{
+    private toJsonObject(file:ILuckyFile):ILuckyFile{
         let LuckyOutPutFile = new LuckyFileBase();
         LuckyOutPutFile.info = file.info;
         LuckyOutPutFile.workbook = file.workbook;
@@ -545,7 +581,26 @@ export class LuckyFile extends LuckyFileBase {
             LuckyOutPutFile.sheets.push(sheetout);
         });
 
-        return JSON.stringify(LuckyOutPutFile);
+        return LuckyOutPutFile;
+    }
+
+    private toPlainObject<T>(value: T): T {
+        if (Array.isArray(value)) {
+            return value.map((item) => this.toPlainObject(item)) as unknown as T;
+        }
+
+        if (value !== null && typeof value === 'object') {
+            const plainObject: Record<string, unknown> = {};
+            Object.keys(value as Record<string, unknown>).forEach((key) => {
+                const currentValue = (value as Record<string, unknown>)[key];
+                if (currentValue !== undefined) {
+                    plainObject[key] = this.toPlainObject(currentValue);
+                }
+            });
+            return plainObject as T;
+        }
+
+        return value;
     }
 
 

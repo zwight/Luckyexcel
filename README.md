@@ -1,10 +1,13 @@
-English| [简体中文](./README-zh.md)
-
 >Warning:
 this project was forked from [Luckyexcel](https://github.com/dream-num/Luckyexcel), base on the last commit on 2022-06-10 [5a0be428b9fead1479a0890d19fb26ae0a291a1c](https://github.com/dream-num/Luckyexcel/commit/5a0be428b9fead1479a0890d19fb26ae0a291a1c)
 
 ## Introduction
 This project is based on the import of [Luckyexcel](https://github.com/dream-num/Luckyexcel), and adds the conversion of [Luckysheet](https://github.com/mengshukeji/Luckysheet) data structure into [Univer](https://github.com/dream-num/univer) data structure. It can directly import and return the data structure required by Univer. In addition, this project also implements the export function based on Univer, supporting the export of .xlsx and .csv format files
+
+## Fork Status
+This fork is maintained by Mustafa Mansoor (<mustafamansoor47@gmail.com>).
+
+Compared with the original upstream repo, this fork includes fixes for the slow import issue and the theme-color conditional-format import crash that affected some `.xlsx` files.
 
 ## Features
 Support Univer import excel and export excel/csv adapter list
@@ -30,7 +33,7 @@ The goal is to support all features supported by Univer
 ### CDN
 ```html
 <script src="https://unpkg.com/@univerjs/core/lib/umd/index.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@zwight/luckyexcel/dist/luckyexcel.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@applead/luckyexcel/dist/luckyexcel.umd.min.js"></script>
 <script>
     // Univer import Excel file
     LuckyExcel.transformExcelToUniver(
@@ -98,12 +101,12 @@ The goal is to support all features supported by Univer
 
 #### Installation
 ```shell
-npm install @zwight/luckyexcel
+npm install @applead/luckyexcel
 ```
 
 #### ES import
 ```js
-import LuckyExcel from '@zwight/luckyexcel'
+import LuckyExcel from '@applead/luckyexcel'
 
 // After getting the xlsx file
 LuckyExcel.transformExcelToUniver(
@@ -144,4 +147,4 @@ A third-party plug-in is used in the project: [JSZip](https://github.com/Stuk/js
 ## License
 [MIT](http://opensource.org/licenses/MIT)
 
-Copyright (c) 2020-present, zwight
+Copyright (c) 2020-present, Mustafa Mansoor

@@ -1,6 +1,6 @@
 /**:
 * @description: 返回的filter属性是univer格式
-* @author: Created by zwight on 2024-09-23 17:50:01
+* @author: Maintained by Mustafa Mansoor
 */
 import { BooleanNumber } from "@univerjs/core";
 import { str2num } from "../common/method";

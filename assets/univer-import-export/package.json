@@ -34,7 +34,7 @@
     "@univerjs/sheets-ui": "0.6.0",
     "@univerjs/ui": "0.6.0",
     "@univerjs/vite-plugin": "^0.5.1",
-    "@zwight/luckyexcel": "file:../../dist/",
+    "@applead/luckyexcel": "file:../../dist/",
     "antd": "^5.25.1",
     "vue": "^3.5.13"
   },

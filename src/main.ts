@@ -13,6 +13,13 @@ import { UniverWorkBook } from "./LuckyToUniver/UniverWorkBook";
 import { IWorkbookData } from "@univerjs/core";
 import { formatSheetData, getDataByFile } from "./common/utils";
 import { UniverCsvWorkBook } from "./LuckyToUniver/UniverCsvWorkBook";
+import { createProfileLogger } from "./common/profile";
+
+export interface TransformExcelToUniverOptions {
+    includeCharts?: boolean;
+    profile?: boolean;
+}
+
 export class LuckyExcel {
     constructor() { }
     static transformExcelToLucky(excelFile: File,
@@ -74,19 +81,34 @@ export class LuckyExcel {
     static transformExcelToUniver(
         excelFile: File,
         callback?: (files: IWorkbookData, fs?: string) => void,
-        errorHandler?: (err: Error) => void
+        errorHandler?: (err: Error) => void,
+        options: TransformExcelToUniverOptions = {}
     ) {
         let handleZip: HandleZip = new HandleZip(excelFile);
+        const profiler = createProfileLogger(options.profile, 'transformExcelToUniver');
 
         handleZip.unzipFile(function (files: IuploadfileList) {
-            console.log('input------>', files);
+            profiler.mark('unzip complete', {
+                fileName: excelFile.name,
+                fileSize: excelFile.size,
+                zipEntries: Object.keys(files).length,
+            });
             let luckyFile = new LuckyFile(files, excelFile.name);
-            let luckysheetfile = luckyFile.Parse();
+            let luckysheetfile = luckyFile.Parse(options);
+            profiler.mark('lucky parse complete', {
+                jsonLength: luckysheetfile.length,
+            });
             let exportJson = JSON.parse(luckysheetfile);
-            console.log('output---->', exportJson, files)
+            profiler.mark('json parse complete', {
+                sheetCount: exportJson?.sheets?.length || 0,
+            });
             if (callback != undefined) {
-                const univerData = new UniverWorkBook(exportJson)
-                callback(univerData.mode, luckysheetfile);
+                const univerData = new UniverWorkBook(exportJson, options)
+                profiler.end({
+                    workbookSheets: univerData.sheetOrder?.length || 0,
+                    resourceCount: univerData.resources?.length || 0,
+                });
+                callback(univerData.mode);
             }
         },
             function (err: Error) {
@@ -152,7 +174,6 @@ export class LuckyExcel {
         const { snapshot, fileName = `csv_${(new Date).getTime()}.csv`, getBuffer = false, success, error, sheetName } = params;
         try {
             const csv = new CSV(snapshot);
-            console.log(csv);
 
             let contents: string | { [key: string]: string };
             if (sheetName) {

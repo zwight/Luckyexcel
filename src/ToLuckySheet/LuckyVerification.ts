@@ -1,6 +1,6 @@
 /**:
 * @description: 这里处理的dataverification格式是univer用的格式
-* @author: Created by zwight on 2024-09-23 17:50:46
+* @author: Maintained by Mustafa Mansoor
 */
 import { generateRandomIndex, getMultiFormulaValue, getPeelOffX14, getXmlAttibute } from "../common/method";
 import { Element } from "./ReadXml";

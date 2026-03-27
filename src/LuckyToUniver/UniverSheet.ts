@@ -61,7 +61,18 @@ export class UniverSheet extends UniverSheetBase {
                 this.rowCount = this.rowCount > rowCount ? this.rowCount : rowCount + 1;
                 this.columnCount = this.columnCount > colCount ? this.columnCount : colCount + 1;
             }
-            console.log(this.rowCount, this.columnCount)
+            const maxConfiguredRow = Math.max(
+                0,
+                ...Object.keys(config.rowlen || {}).map(Number),
+                ...Object.keys(config.rowhidden || {}).map(Number)
+            );
+            const maxConfiguredColumn = Math.max(
+                0,
+                ...Object.keys(config.columnlen || {}).map(Number),
+                ...Object.keys(config.colhidden || {}).map(Number)
+            );
+            this.rowCount = Math.max(this.rowCount, maxConfiguredRow + 1);
+            this.columnCount = Math.max(this.columnCount, maxConfiguredColumn + 1);
             this.handleRowAndColumnData(config);
             if (sheetData.freezen) this.handleFreeze(sheetData.freezen);
         }
@@ -106,6 +117,17 @@ export class UniverSheet extends UniverSheetBase {
         });
     };
     private handleCellData = (celldata: IluckySheetCelldata[], config: IluckySheetConfig) => {
+        const borderInfoMap = new Map(
+            (config.borderInfo || []).map((item) => [
+                `${item.value.row_index}_${item.value.col_index}`,
+                item,
+            ])
+        );
+        const hyperLinkCells = new Set(
+            this.hyperLink.map((item) => `${item.row}_${item.column}`)
+        );
+        const getBorderConf = (row: number, col: number) =>
+            borderInfoMap.get(`${row}_${col}`);
         const handleCell = (row: IluckySheetCelldata): ICellData => {
             const { v } = row;
             if (typeof v === 'string' || v === null || v === undefined) {
@@ -117,9 +139,7 @@ export class UniverSheet extends UniverSheetBase {
                 b: CellValueType.BOOLEAN,
                 str: CellValueType.STRING,
             };
-            const borderConf = config.borderInfo?.find(
-                (d) => d.value.col_index === row.c && d.value.row_index === row.r
-            );
+            const borderConf = getBorderConf(row.r, row.c);
 
             let cellType = v.ct?.t && tMap[v.ct?.t] ? tMap[v.ct?.t] : CellValueType.NUMBER;
 
@@ -128,7 +148,7 @@ export class UniverSheet extends UniverSheetBase {
 
             if (Number.isNaN(Number(val)) && cellType === CellValueType.NUMBER)
                 cellType = CellValueType.STRING;
-            if (this.hyperLink.findIndex((d) => d.column === row.c && d.row === row.r) > -1)
+            if (hyperLinkCells.has(`${row.r}_${row.c}`))
                 cellType = CellValueType.STRING;
 
             const f = v.f?.replace(/=_xlfn./g, '=');
@@ -141,10 +161,10 @@ export class UniverSheet extends UniverSheetBase {
                 t: cellType,
                 v: val,
             };
-            const pVal = this.handleDocument(row, config);
+            const pVal = this.handleDocument(row, borderInfoMap);
             if (pVal) cell.p = pVal;
 
-            const pValImg = this.handleCellImage(row,config);
+            const pValImg = this.handleCellImage(row, borderInfoMap);
             if (pValImg) {
                 cell.p = pValImg;
                 cell.f = undefined;
@@ -152,38 +172,25 @@ export class UniverSheet extends UniverSheetBase {
             }
             return removeEmptyAttr(cell);
         };
-        let row: number | undefined = undefined;
-        let colCount = 0;
-        const rowData = celldata.reduce((pre: any, cur) => {
-            if (row === cur.r) {
-                pre[cur.r].push(cur);
-            } else {
-                row = cur.r;
-                pre[row] = [cur];
-            }
-            if (cur.c > colCount) colCount = cur.c;
-            return pre;
-        }, []);
         const cell: IObjectMatrixPrimitiveType<ICellData> = {};
-        // console.log(rowData, celldata, colCount)
-        rowData.forEach((row: IluckySheetCelldata[], rowIndex: number) => {
-            for (let index = 0; index < colCount + 1; index++) {
-                const element = row.find((d) => d.c === index) || {
-                    r: rowIndex,
-                    c: index,
-                    v: null,
-                };
-                if (!cell[element.r]) cell[element.r] = {};
-                cell[element.r][element.c] = handleCell(element);
-            }
+        let rowCount = 0;
+        let colCount = 0;
+        celldata.forEach((item) => {
+            if (!cell[item.r]) cell[item.r] = {};
+            cell[item.r][item.c] = handleCell(item);
+            if (item.r > rowCount) rowCount = item.r;
+            if (item.c > colCount) colCount = item.c;
         });
         return {
             cellData: cell,
-            rowCount: rowData.length,
+            rowCount,
             colCount,
         };
     };
-    private handleDocument = (row: IluckySheetCelldata, config: IluckySheetConfig) => {
+    private handleDocument = (
+        row: IluckySheetCelldata,
+        borderInfoMap: Map<string, any>
+    ) => {
         const matchArray = (str: string, charToFind: string) => {
             const regex = new RegExp(charToFind, 'g');
             let match;
@@ -246,9 +253,7 @@ export class UniverSheet extends UniverSheetBase {
                     return prev;
                 }, 0);
                 const end = start + (v.ct!.s?.[index]?.v?.length || 0);
-                const borderConf = config.borderInfo?.find(
-                    (d) => d.value.col_index === row.c && d.value.row_index === row.r
-                );
+                const borderConf = borderInfoMap.get(`${row.r}_${row.c}`);
                 return {
                     st: start,
                     ed: end,
@@ -283,7 +288,10 @@ export class UniverSheet extends UniverSheetBase {
         return pVlaue;
     };
 
-    private handleCellImage = (row: IluckySheetCelldata, config: IluckySheetConfig) => {
+    private handleCellImage = (
+        row: IluckySheetCelldata,
+        borderInfoMap: Map<string, any>
+    ) => {
         let pVlaue: Nullable<any> = null;
         const { v } = row;
         if (typeof v === 'string' || v === null || v === undefined) {
@@ -293,9 +301,7 @@ export class UniverSheet extends UniverSheetBase {
             const blockId = generateRandomId(6);
             const valueId = generateRandomId(6);
             const { default: defaultData,  src, descr } = v.ct.ci || {};
-            const borderConf = config.borderInfo?.find(
-                (d) => d.value.col_index === row.c && d.value.row_index === row.r
-            );
+            const borderConf = borderInfoMap.get(`${row.r}_${row.c}`);
             pVlaue = {
                 id: valueId,
                 documentStyle: {
@@ -364,21 +370,31 @@ export class UniverSheet extends UniverSheetBase {
     private handleRowAndColumnData = (config: IluckySheetConfig) => {
         const columnData: IObjectArrayPrimitiveType<Partial<IColumnData>> = {};
         const rowData: IObjectArrayPrimitiveType<Partial<IRowData>> = {};
-        for (let index = 0; index < this.rowCount; index++) {
+        const rowIndexes = new Set([
+            ...Object.keys(config.rowlen || {}),
+            ...Object.keys(config.rowhidden || {}),
+        ]);
+        rowIndexes.forEach((indexTxt) => {
+            const index = Number(indexTxt);
             rowData[index] = {
                 h: config.rowlen?.[index] || this.defaultRowHeight,
                 ia: !config.rowlen?.[index] ? BooleanNumber.TRUE : BooleanNumber.FALSE,
                 ah: this.defaultRowHeight,
                 hd: config.rowhidden?.[index] === 0 ? BooleanNumber.TRUE : BooleanNumber.FALSE,
             };
-        }
+        });
 
-        for (let index = 0; index < this.columnCount; index++) {
+        const columnIndexes = new Set([
+            ...Object.keys(config.columnlen || {}),
+            ...Object.keys(config.colhidden || {}),
+        ]);
+        columnIndexes.forEach((indexTxt) => {
+            const index = Number(indexTxt);
             columnData[index] = {
                 w: config.columnlen?.[index] || this.defaultColumnWidth,
                 hd: config.colhidden?.[index] === 0 ? BooleanNumber.TRUE : BooleanNumber.FALSE,
             };
-        }
+        });
         this.rowData = rowData;
         this.columnData = columnData;
     };

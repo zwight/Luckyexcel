@@ -14,7 +14,7 @@ import {
 } from '@univerjs/ui';
 import { ExportSingle } from '@univerjs/icons';
 import { ICustomMenuPulginParams } from '../..';
-import LuckyExcel from '@zwight/luckyexcel';
+import LuckyExcel from '@applead/luckyexcel';
 
 let exportWorker: Worker;
 const OperationId = 'custom-menu.operation.export';

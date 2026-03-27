@@ -12,6 +12,7 @@ import { LuckyVerification } from "./LuckyVerification";
 import { LuckFilter } from "./luckyFilter";
 import { LuckyFreezen } from './luckyFreezen'
 import { ChartImageGroup } from './LuckyChart'
+import { createProfileLogger } from "../common/profile";
 
 export class LuckySheet extends LuckySheetBase {
 
@@ -24,6 +25,7 @@ export class LuckySheet extends LuckySheetBase {
     private calcChainEles:Element[]
     private sheetList:IattributeList
     private cellImages: Element[]
+    private includeCharts: boolean
 
     private imageList:ImageList
 
@@ -32,6 +34,7 @@ export class LuckySheet extends LuckySheetBase {
     constructor(sheetName:string, sheetId:string, sheetOrder:number,isInitialCell:boolean=false, allFileOption:any){
         //Private
         super();
+        const profiler = createProfileLogger(allFileOption.profile, `LuckySheet:${sheetName}`);
         this.isInitialCell = isInitialCell;
         this.readXml = allFileOption.readXml;
         this.sheetFile = allFileOption.sheetFile;
@@ -42,6 +45,7 @@ export class LuckySheet extends LuckySheetBase {
         this.imageList = allFileOption.imageList;
         this.hide = allFileOption.hide;
         this.cellImages = allFileOption.cellImages;
+        this.includeCharts = allFileOption.includeCharts !== false;
 
         //Output
         this.name = sheetName;
@@ -99,7 +103,17 @@ export class LuckySheet extends LuckySheetBase {
 
 
         this.generateConfigColumnLenAndHidden();
+        profiler.mark("column config parsed", {
+            columnOverrideCount: Object.keys(this.config.columnlen || {}).length,
+            hiddenColumnCount: Object.keys(this.config.colhidden || {}).length,
+        });
         let cellOtherInfo:IcellOtherInfo =  this.generateConfigRowLenAndHiddenAddCell();
+        profiler.mark("rows and cells parsed", {
+            rowOverrideCount: Object.keys(this.config.rowlen || {}).length,
+            hiddenRowCount: Object.keys(this.config.rowhidden || {}).length,
+            cellCount: this.celldata?.length || 0,
+            formulaCandidateCount: Object.keys(cellOtherInfo.formulaList || {}).length,
+        });
         
         if(this.calcChain==null){
             this.calcChain = [];
@@ -173,6 +187,9 @@ export class LuckySheet extends LuckySheetBase {
                 }
             }
         }
+        profiler.mark("formulas resolved", {
+            calcChainCount: this.calcChain?.length || 0,
+        });
 
 
         //There may be formulas that do not appear in calcChain
@@ -216,17 +233,30 @@ export class LuckySheet extends LuckySheetBase {
             this.conditionalFormatting = ruleList.map((d: any ) => new LuckyCondition(d, this.readXml, this.styles));
             // console.log(ruleList, allFileOption, this.conditionalFormatting)
         }
+        profiler.mark("conditional formatting parsed", {
+            conditionCount: this.conditionalFormatting?.length || 0,
+        });
         // console.log(allFileOption)
         const filter = new LuckFilter(this.readXml, this.sheetFile)
         if (filter.ref) this.filter = filter;
+        profiler.mark("filter parsed", {
+            hasFilter: Boolean(this.filter?.ref),
+        });
       
         // dataVerification config
         this.dataVerification = this.generateConfigDataValidations();
         this.dataVerificationList = this.generateConfigDataValidationsList();
+        profiler.mark("data validation parsed", {
+            dataValidationCellCount: Object.keys(this.dataVerification || {}).length,
+            dataValidationRuleCount: this.dataVerificationList?.length || 0,
+        });
         // console.log('dataVerificationList ---->', this.dataVerificationList)
 
         // hyperlink config
         this.hyperlink = this.generateConfigHyperlinks();
+        profiler.mark("hyperlinks parsed", {
+            hyperlinkCount: Object.keys(this.hyperlink || {}).length,
+        });
       
         // sheet hide
         this.hide = this.hide;
@@ -250,11 +280,24 @@ export class LuckySheet extends LuckySheetBase {
                 this.config.merge[range.row[0] + "_" + range.column[0]] = mergeValue;
             }
         }
+        profiler.mark("merges parsed", {
+            mergeCount: Object.keys(this.config.merge || {}).length,
+        });
 
         let drawingFile = allFileOption.drawingFile, drawingRelsFile = allFileOption.drawingRelsFile;
         if(drawingFile!=null && drawingRelsFile!=null){
             this.getImageBaseInfo(drawingFile, drawingRelsFile)
-        } 
+        }
+        profiler.mark("drawings parsed", {
+            imageCount: this.images ? Object.keys(this.images).length : 0,
+            chartCount: this.charts?.length || 0,
+        });
+        profiler.end({
+            cellCount: this.celldata?.length || 0,
+            borderCount: this.config.borderInfo?.length || 0,
+            imageCount: this.images ? Object.keys(this.images).length : 0,
+            chartCount: this.charts?.length || 0,
+        });
     }
 
     private getImageBaseInfo = (drawingFile: string, drawingRelsFile: string): any => {
@@ -275,12 +318,15 @@ export class LuckySheet extends LuckySheetBase {
                         xdrExt = twoCellAnchor.getInnerElements("xdr:ext")[0]
                     }
                     let imageObject: any = {};
-                    
+
                     let xdr_graphicFrame = twoCellAnchor.getInnerElements("xdr:graphicFrame");
-                    if (xdr_graphicFrame) {
+                    let xdr_pic = twoCellAnchor.getInnerElements("xdr:pic");
+                    if (xdr_graphicFrame && !this.includeCharts && !xdr_pic) {
+                        continue;
+                    }
+                    if (xdr_graphicFrame && this.includeCharts) {
                         imageObject = this.getGraphic(twoCellAnchor, drawingRelsFile)
                     }
-                    let xdr_pic = twoCellAnchor.getInnerElements("xdr:pic");
                     if (xdr_pic) {
                         imageObject = this.getImage(twoCellAnchor, drawingRelsFile)
                     }
@@ -777,6 +823,10 @@ export class LuckySheet extends LuckySheetBase {
         this.sheetFile
       );
       let hyperlink: IluckysheetHyperlink = {};
+      const relationshipList = this.readXml.getElementsByTagName(
+        "Relationships/Relationship",
+        `xl/worksheets/_rels/${this.sheetFile.replace(worksheetFilePath, "")}.rels`
+      );
       for (let i = 0; i < rows.length; i++) {
         let row = rows[i];
         let attrList = row.attributeList;
@@ -790,12 +840,6 @@ export class LuckySheet extends LuckySheetBase {
         // external hyperlink
         if (!_address) {
           let rid = attrList["r:id"];
-          let sheetFile = this.sheetFile;
-          let relationshipList = this.readXml.getElementsByTagName(
-            "Relationships/Relationship",
-            `xl/worksheets/_rels/${sheetFile.replace(worksheetFilePath, "")}.rels`
-          );
-  
           const findRid = relationshipList?.find(
             (e) => e.attributeList["Id"] === rid
           );

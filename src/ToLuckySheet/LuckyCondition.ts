@@ -1,7 +1,7 @@
 /**:
 * @description: 返回的condition格式为univer使用的格式，但是规则配置中的style是luckyexcel的格式，
 * 后面考虑新增配置用来输出univer所需的数据结构
-* @author: Created by zwight on 2024-09-20 16:13:34
+* @author: Maintained by Mustafa Mansoor
 */
 import { escapeCharacter, generateRandomIndex, getXmlAttibute, str2num } from "../common/method";
 import { IattributeList } from "../ICommon";
@@ -272,7 +272,7 @@ export class LuckyCondition implements LuckyConditionFormat {
             }
 
             if (font) {
-                const { cellValue } = getFontStyle(font, style)
+                const { cellValue } = getFontStyle(font, styles)
                 style = { ...style, ...cellValue };
             }
 

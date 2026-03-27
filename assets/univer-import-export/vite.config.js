@@ -7,7 +7,7 @@ export default defineConfig({
   plugins: [vue(), univerPlugin()],
   resolve: {
     alias: {
-      '@zwight/luckyexcel': '/Users/lx/Desktop/project/Luckyexcel/dist/luckyexcel.esm.js',
+      '@applead/luckyexcel': '/Users/lx/Desktop/project/Luckyexcel/dist/luckyexcel.esm.js',
     },
   },
 });

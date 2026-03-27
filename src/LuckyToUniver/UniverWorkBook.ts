@@ -15,6 +15,8 @@ import { generateRandomId } from '../common/method';
 import { IluckySheet, ILuckyFile, IWorkBookInfo } from '../ToLuckySheet/ILuck';
 import { ImageSourceType } from './ILuckInterface';
 import { handleRanges } from '../ToLuckySheet/style';
+import type { TransformExcelToUniverOptions } from '../main';
+import { createProfileLogger } from '../common/profile';
 
 interface Sheets {
     [sheetId: string]: Partial<IWorksheetData & { hyperLink: HyperLink[] }>;
@@ -32,12 +34,17 @@ export class UniverWorkBook implements IWorkbookData {
     sheetOrder!: string[];
     sheets!: Sheets;
     resources?: IResources | undefined = [];
-    constructor(file: ILuckyFile) {
+    constructor(file: ILuckyFile, options: TransformExcelToUniverOptions = {}) {
         const { info, sheets, workbook } = file;
+        const profiler = createProfileLogger(options.profile, 'UniverWorkBook');
         this.id = generateRandomId(6);
         this.name = info.name;
         this.appVersion = info.appversion;
         this.locale = LocaleType.ZH_CN;
+        const sourceSheetsByName = sheets.reduce((map, sheet) => {
+            map[sheet.name] = sheet;
+            return map;
+        }, {} as LuckySheetObj);
 
         const workSheets: Sheets = {},
             order: string[] = [],
@@ -45,23 +52,44 @@ export class UniverWorkBook implements IWorkbookData {
         sheets
             .sort((a, b) => Number(a.order) - Number(b.order))
             .forEach((d) => {
+                const sheetProfiler = createProfileLogger(options.profile, `UniverWorkBook.sheet:${d.name}`);
                 const sheet = new UniverSheet(d);
                 workSheets[sheet.id] = sheet.mode;
                 sheetsObj[sheet.id] = d;
                 order.push(sheet.id);
+                sheetProfiler.end({
+                    rowCount: sheet.rowCount,
+                    columnCount: sheet.columnCount,
+                    cellRows: Object.keys(sheet.cellData || {}).length,
+                });
             });
 
         // console.log(workSheets,sheets)
         this.handleHyperLinks(workSheets);
-        this.handleImage(workSheets, sheets);
-        this.handleChart(workSheets, sheets);
+        profiler.mark('hyperlinks mapped');
+        this.handleImage(workSheets, sourceSheetsByName);
+        profiler.mark('images mapped');
+        if (options.includeCharts !== false) {
+            this.handleChart(workSheets, sourceSheetsByName);
+            profiler.mark('charts mapped');
+        } else {
+            profiler.mark('charts skipped');
+        }
         this.handleNames(workbook);
+        profiler.mark('defined names mapped');
         this.handleCondition(sheetsObj);
+        profiler.mark('conditional formatting mapped');
         this.handleVerification(sheetsObj);
+        profiler.mark('data validation mapped');
         this.handleFilter(sheetsObj);
+        profiler.mark('filters mapped');
         this.sheetOrder = order;
 
         this.sheets = workSheets;
+        profiler.end({
+            sheetCount: order.length,
+            resourceCount: this.resources?.length || 0,
+        });
     }
 
     get mode(): IWorkbookData {
@@ -79,6 +107,10 @@ export class UniverWorkBook implements IWorkbookData {
     }
     private handleHyperLinks = (workSheets: Sheets) => {
         const hyperLinks: { [key: string]: HyperLink[] } = {};
+        const sheetIdByName = Object.values(workSheets).reduce((map, sheet) => {
+            map[sheet.name || ''] = sheet.id || '';
+            return map;
+        }, {} as Record<string, string>);
         for (const key in workSheets) {
             const link = workSheets[key].hyperLink;
             if (!link?.length) continue;
@@ -87,9 +119,7 @@ export class UniverWorkBook implements IWorkbookData {
                 if (typeof d.payload !== 'string') {
                     payload = '#';
                     const gid = d.payload.gid.replace(/'|"/g, '');
-                    const sheetId = Object.values(workSheets).find(
-                        (sheet) => sheet.name === gid
-                    )?.id;
+                    const sheetId = sheetIdByName[gid];
 
                     if (gid && sheetId) {
                         payload += `gid=${sheetId}`;
@@ -109,13 +139,13 @@ export class UniverWorkBook implements IWorkbookData {
             data: JSON.stringify(hyperLinks),
         });
     };
-    private handleImage = (workSheets: Sheets, sheets: IluckySheet[]) => {
+    private handleImage = (workSheets: Sheets, sheetsByName: LuckySheetObj) => {
         const drawerList: {
             [key: string]: { order: string[]; data: { [key: string]: any } };
         } = {};
 
         Object.values(workSheets).forEach((sheet) => {
-            const images = sheets.find((d) => d.name === sheet.name)?.images;
+            const images = sheetsByName[sheet.name || '']?.images;
             if (!images) return;
             const order = Object.keys(images);
             const data: { [key: string]: any } = {};
@@ -200,12 +230,12 @@ export class UniverWorkBook implements IWorkbookData {
         });
     };
 
-    private handleChart = (workSheets: Sheets, sheets: IluckySheet[]) => {
+    private handleChart = (workSheets: Sheets, sheetsByName: LuckySheetObj) => {
         const chartList: {
             [key: string]: any
         } = {};
         Object.values(workSheets).forEach((sheet) => {
-            const charts = sheets.find((d) => d.name === sheet.name)?.charts;
+            const charts = sheetsByName[sheet.name || '']?.charts;
             if (!charts) return;
             charts.forEach((chart) => {
                 if (!chartList[sheet.id!]) {

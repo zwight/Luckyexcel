@@ -1,5 +1,5 @@
 const { ExportSingle } = UniverIcons;
-// import LuckyExcel from '@zwight/luckyexcel';
+// import LuckyExcel from '@applead/luckyexcel';
 
 const OperationId = 'custom-menu.operation.export';
 const ExportButtonOperation = (
